@@ -22,29 +22,51 @@ export const animalSVGs = {
     'Зебра': '<svg viewBox="0 0 100 100"><ellipse cx="50" cy="60" rx="32" ry="28" fill="#FFF"/><ellipse cx="45" cy="35" rx="18" ry="22" fill="#FFF"/><rect x="25" y="45" width="50" height="5" fill="#000"/><rect x="25" y="55" width="50" height="5" fill="#000"/><rect x="25" y="65" width="50" height="5" fill="#000"/><rect x="35" y="25" width="20" height="4" fill="#000"/><rect x="35" y="35" width="20" height="4" fill="#000"/><circle cx="40" cy="32" r="4" fill="#000"/><circle cx="50" cy="32" r="4" fill="#000"/></svg>'
 };
 
-// Animal Data
+// Animal Data with Categories
 export const animals = [
-    { name: 'Собака', sound: 'Гав-гав', home: 'Будка', hint: 'Найкращий друг людини', color: '#D2691E' },
-    { name: 'Кіт', sound: 'Мяу-мяу', home: 'Будинок', hint: 'Любить молоко і м\'ячик', color: '#FF8C00' },
-    { name: 'Корова', sound: 'Му-му', home: 'Хлів', hint: 'Дає молоко', color: '#000' },
-    { name: 'Свиня', sound: 'Хрю-хрю', home: 'Свинарник', hint: 'Любить калюжі', color: '#FFB6C1' },
-    { name: 'Курка', sound: 'Ко-ко-ко', home: 'Курник', hint: 'Несе яйця', color: '#FF6347' },
-    { name: 'Кінь', sound: 'Іго-го', home: 'Стайня', hint: 'Швидко бігає', color: '#8B4513' },
-    { name: 'Вівця', sound: 'Бе-е-е', home: 'Кошара', hint: 'Дає вовну', color: '#F5F5F5' },
-    { name: 'Жаба', sound: 'Ква-ква', home: 'Болото', hint: 'Стрибає і плаває', color: '#32CD32' },
-    { name: 'Качка', sound: 'Кря-кря', home: 'Ставок', hint: 'Плаває у воді', color: '#FFD700' },
-    { name: 'Бджола', sound: 'Дзижчить', home: 'Вулик', hint: 'Робить мед', color: '#FFD700' },
-    { name: 'Кролик', sound: 'Тихо', home: 'Нора', hint: 'Любить моркву', color: '#DDD' },
-    { name: 'Ведмідь', sound: 'Гарр', home: 'Барліг', hint: 'Спить взимку', color: '#8B4513' },
-    { name: 'Лисиця', sound: 'Тяв-тяв', home: 'Нора', hint: 'Руда і хитра', color: '#FF4500' },
-    { name: 'Вовк', sound: 'Ау-ау', home: 'Ліс', hint: 'Виє на місяць', color: '#696969' },
-    { name: 'Миша', sound: 'Пі-пі', home: 'Нірка', hint: 'Боїться кота', color: '#A9A9A9' },
-    { name: 'Папуга', sound: 'Повторює слова', home: 'Клітка', hint: 'Яскравий пташка', color: '#FF1493' },
-    { name: 'Їжак', sound: 'Пихтить', home: 'Нора', hint: 'Має колючки', color: '#8B4513' },
-    { name: 'Сова', sound: 'Угу-угу', home: 'Дупло', hint: 'Літає вночі', color: '#8B7355' },
-    { name: 'Пінгвін', sound: 'Кря', home: 'Антарктида', hint: 'Не літає, плаває', color: '#000' },
-    { name: 'Зебра', sound: 'Іга', home: 'Савана', hint: 'У смужку', color: '#000' }
+    { name: 'Собака', sound: 'Гав-гав', home: 'Будка', hint: 'Найкращий друг людини', color: '#D2691E', category: 'farm' },
+    { name: 'Кіт', sound: 'Мяу-мяу', home: 'Будинок', hint: 'Любить молоко і м\'ячик', color: '#FF8C00', category: 'farm' },
+    { name: 'Корова', sound: 'Му-му', home: 'Хлів', hint: 'Дає молоко', color: '#000', category: 'farm' },
+    { name: 'Свиня', sound: 'Хрю-хрю', home: 'Свинарник', hint: 'Любить калюжі', color: '#FFB6C1', category: 'farm' },
+    { name: 'Курка', sound: 'Ко-ко-ко', home: 'Курник', hint: 'Несе яйця', color: '#FF6347', category: 'birds' },
+    { name: 'Кінь', sound: 'Іго-го', home: 'Стайня', hint: 'Швидко бігає', color: '#8B4513', category: 'farm' },
+    { name: 'Вівця', sound: 'Бе-е-е', home: 'Кошара', hint: 'Дає вовну', color: '#F5F5F5', category: 'farm' },
+    { name: 'Жаба', sound: 'Ква-ква', home: 'Болото', hint: 'Стрибає і плаває', color: '#32CD32', category: 'wild' },
+    { name: 'Качка', sound: 'Кря-кря', home: 'Ставок', hint: 'Плаває у воді', color: '#FFD700', category: 'birds' },
+    { name: 'Бджола', sound: 'Дзижчить', home: 'Вулик', hint: 'Робить мед', color: '#FFD700', category: 'insects' },
+    { name: 'Кролик', sound: 'Тихо', home: 'Нора', hint: 'Любить моркву', color: '#DDD', category: 'farm' },
+    { name: 'Ведмідь', sound: 'Гарр', home: 'Барліг', hint: 'Спить взимку', color: '#8B4513', category: 'wild' },
+    { name: 'Лисиця', sound: 'Тяв-тяв', home: 'Нора', hint: 'Руда і хитра', color: '#FF4500', category: 'wild' },
+    { name: 'Вовк', sound: 'Ау-ау', home: 'Ліс', hint: 'Виє на місяць', color: '#696969', category: 'wild' },
+    { name: 'Миша', sound: 'Пі-пі', home: 'Нірка', hint: 'Боїться кота', color: '#A9A9A9', category: 'wild' },
+    { name: 'Папуга', sound: 'Повторює слова', home: 'Клітка', hint: 'Яскравий пташка', color: '#FF1493', category: 'birds' },
+    { name: 'Їжак', sound: 'Пихтить', home: 'Нора', hint: 'Має колючки', color: '#8B4513', category: 'wild' },
+    { name: 'Сова', sound: 'Угу-угу', home: 'Дупло', hint: 'Літає вночі', color: '#8B7355', category: 'birds' },
+    { name: 'Пінгвін', sound: 'Кря', home: 'Антарктида', hint: 'Не літає, плаває', color: '#000', category: 'birds' },
+    { name: 'Зебра', sound: 'Іга', home: 'Савана', hint: 'У смужку', color: '#000', category: 'wild' }
 ];
+
+// Category definitions
+export const categories = {
+    farm: { name: 'Свійські тварини', icon: '🏠', gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' },
+    wild: { name: 'Дикі тварини', icon: '🌲', gradient: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)' },
+    birds: { name: 'Птахи', icon: '🦅', gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)' },
+    insects: { name: 'Комахи', icon: '🐝', gradient: 'linear-gradient(135deg, #fa709a 0%, #fee140 100%)' }
+};
+
+// Get animals by category
+export function getAnimalsByCategory(category) {
+    if (category === 'all') return animals;
+    return animals.filter(animal => animal.category === category);
+}
+
+// Get available categories (that have animals)
+export function getAvailableCategories() {
+    const usedCategories = new Set(animals.map(a => a.category));
+    return Object.entries(categories)
+        .filter(([key]) => usedCategories.has(key))
+        .map(([key, value]) => ({ id: key, ...value }));
+}
 
 // Helper functions
 export function getAnimalIcon(animalName) {

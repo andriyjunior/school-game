@@ -38,11 +38,16 @@ export default function DebugGame({ onBack, onShowHelp, updateScore }) {
     setIsCorrect(correct);
     setShowResult(true);
 
-    if (correct) {
-      const points = 20;
-      setScore(score + points);
-      updateScore(points);
-    }
+    const points = correct ? 20 : 0;
+    setScore(score + points);
+
+    // Send result to parent with details for live session tracking
+    updateScore(points, {
+      question: `Знайди баг: ${currentQuestion.title}`,
+      correct: correct,
+      selectedAnswer: selectedOption,
+      correctAnswer: currentQuestion.bug
+    });
   };
 
   const nextQuestion = () => {
