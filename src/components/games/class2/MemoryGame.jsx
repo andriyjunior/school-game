@@ -69,7 +69,7 @@ export default function MemoryGame({ onBack, onShowHelp, updateScore, category }
 
           if (matchedPairs.length + 1 === 6) {
             setTimeout(() => {
-              alert(`🎉 Вітаємо! Ти знайшов всі пари за ${moves + 1} ходів!`);
+              alert(`Вітаємо! Ти знайшов всі пари за ${moves + 1} ходів!`);
             }, 500);
           }
         }, 800);
@@ -98,12 +98,12 @@ export default function MemoryGame({ onBack, onShowHelp, updateScore, category }
     <div className="game-screen active">
       <div className="game-header">
         <button className="back-btn" onClick={onBack}>← Назад</button>
-        <button className="help-btn" onClick={() => onShowHelp('memory')}>❓ Допомога</button>
+        <button className="help-btn" onClick={() => onShowHelp('memory')}><i className="fas fa-question-circle"></i> Допомога</button>
       </div>
 
       <div className="score">Рахунок: {score}</div>
       <h2 style={{ textAlign: 'center', color: '#667eea', margin: '20px 0' }}>
-        🃏 Знайди Пару
+        <i className="fas fa-clone"></i> Знайди Пару
       </h2>
 
       <div style={{ textAlign: 'center', marginBottom: '20px' }}>
@@ -160,7 +160,7 @@ export default function MemoryGame({ onBack, onShowHelp, updateScore, category }
                   </div>
                 </div>
               ) : (
-                <div style={{ fontSize: '3em' }}>❓</div>
+                <div style={{ fontSize: '3em' }}><i className="fas fa-question"></i></div>
               )}
             </div>
           );
@@ -180,7 +180,7 @@ export default function MemoryGame({ onBack, onShowHelp, updateScore, category }
             cursor: 'pointer'
           }}
         >
-          🔄 Нова гра
+          <i className="fas fa-redo"></i> Нова гра
         </button>
       </div>
     </div>

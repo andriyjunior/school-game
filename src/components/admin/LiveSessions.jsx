@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getActiveLiveSessions } from '../../firebase/database';
+import { getAllLiveSessions } from '../../firebase/database';
 import LiveSessionCreator from './LiveSessionCreator';
 import LiveSessionMonitor from './LiveSessionMonitor';
 
@@ -8,19 +8,20 @@ export default function LiveSessions() {
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState('list'); // 'list', 'create', 'monitor'
   const [selectedSessionId, setSelectedSessionId] = useState(null);
+  const [filterStatus, setFilterStatus] = useState('all'); // 'all', 'active', 'completed', 'paused'
 
   useEffect(() => {
     loadSessions();
-    // Refresh sessions every 5 seconds
-    const interval = setInterval(loadSessions, 5000);
+    // Refresh sessions every 30 seconds (reduced from 5s to save database reads)
+    const interval = setInterval(loadSessions, 30000);
     return () => clearInterval(interval);
   }, []);
 
   const loadSessions = async () => {
     try {
-      console.log('Loading live sessions...');
-      const data = await getActiveLiveSessions();
-      console.log('Loaded live sessions:', data);
+      console.log('Loading all live sessions...');
+      const data = await getAllLiveSessions();
+      console.log('Loaded all live sessions:', data);
       setSessions(data);
     } catch (error) {
       console.error('Error loading live sessions:', error);
@@ -83,7 +84,7 @@ export default function LiveSessions() {
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: '30px'
+        marginBottom: '20px'
       }}>
         <h2 style={{ margin: 0, color: '#667eea' }}>
           📡 Живі Сесії
@@ -103,6 +104,40 @@ export default function LiveSessions() {
         >
           ➕ Створити Нову Сесію
         </button>
+      </div>
+
+      {/* Filter Buttons */}
+      <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
+        {['all', 'active', 'completed', 'paused'].map(status => {
+          const count = status === 'all'
+            ? sessions.length
+            : sessions.filter(s => s.status === status).length;
+          const labels = {
+            all: 'Всі',
+            active: 'Активні',
+            completed: 'Завершені',
+            paused: 'Призупинені'
+          };
+
+          return (
+            <button
+              key={status}
+              onClick={() => setFilterStatus(status)}
+              style={{
+                padding: '8px 16px',
+                borderRadius: '8px',
+                border: filterStatus === status ? '2px solid #667eea' : '2px solid #ddd',
+                background: filterStatus === status ? '#e7f0ff' : 'white',
+                color: filterStatus === status ? '#667eea' : '#666',
+                fontWeight: filterStatus === status ? 'bold' : 'normal',
+                cursor: 'pointer',
+                fontSize: '0.95em'
+              }}
+            >
+              {labels[status]} ({count})
+            </button>
+          );
+        })}
       </div>
 
       {loading ? (
@@ -146,31 +181,42 @@ export default function LiveSessions() {
           gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))',
           gap: '20px'
         }}>
-          {sessions.map(session => {
-            const participantsCount = Object.keys(session.results || {}).length;
-            const isAll = session.participants && session.participants[0] === 'all';
+          {sessions
+            .filter(session => filterStatus === 'all' || session.status === filterStatus)
+            .map(session => {
+              const participantsCount = Object.keys(session.results || {}).length;
+              const isAll = session.participants && session.participants[0] === 'all';
 
-            return (
-              <div
-                key={session.id}
-                onClick={() => handleMonitorSession(session.id)}
-                style={{
-                  padding: '20px',
-                  borderRadius: '12px',
-                  border: '2px solid #667eea',
-                  background: 'linear-gradient(135deg, #f8f9fa 0%, #e7f0ff 100%)',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s',
-                  ':hover': {
-                    transform: 'translateY(-5px)',
-                    boxShadow: '0 10px 20px rgba(102, 126, 234, 0.3)'
-                  }
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-5px)';
-                  e.currentTarget.style.boxShadow = '0 10px 20px rgba(102, 126, 234, 0.3)';
-                }}
-                onMouseLeave={(e) => {
+              const statusColors = {
+                active: { bg: '#e7f0ff', border: '#667eea', badge: '#28a745', badgeText: '✓ Активна' },
+                completed: { bg: '#f8f9fa', border: '#6c757d', badge: '#6c757d', badgeText: '✓ Завершена' },
+                paused: { bg: '#fff3cd', border: '#ffc107', badge: '#ff9800', badgeText: '⏸ Призупинена' }
+              };
+
+              const colors = statusColors[session.status] || statusColors.active;
+
+              return (
+                <div
+                  key={session.id}
+                  onClick={() => handleMonitorSession(session.id)}
+                  style={{
+                    padding: '20px',
+                    borderRadius: '12px',
+                    border: `2px solid ${colors.border}`,
+                    background: `linear-gradient(135deg, ${colors.bg} 0%, #ffffff 100%)`,
+                    cursor: 'pointer',
+                    transition: 'all 0.3s',
+                    opacity: session.status === 'completed' ? 0.85 : 1,
+                    ':hover': {
+                      transform: 'translateY(-5px)',
+                      boxShadow: '0 10px 20px rgba(102, 126, 234, 0.3)'
+                    }
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.transform = 'translateY(-5px)';
+                    e.currentTarget.style.boxShadow = '0 10px 20px rgba(102, 126, 234, 0.3)';
+                  }}
+                  onMouseLeave={(e) => {
                   e.currentTarget.style.transform = 'translateY(0)';
                   e.currentTarget.style.boxShadow = 'none';
                 }}
@@ -190,14 +236,14 @@ export default function LiveSessions() {
                     {session.title}
                   </h3>
                   <div style={{
-                    background: '#28a745',
+                    background: colors.badge,
                     color: 'white',
                     padding: '5px 10px',
                     borderRadius: '20px',
                     fontSize: '0.8em',
                     fontWeight: 'bold'
                   }}>
-                    🟢 Активна
+                    {colors.badgeText}
                   </div>
                 </div>
 
@@ -214,7 +260,7 @@ export default function LiveSessions() {
                     color: 'white',
                     fontSize: '0.9em'
                   }}>
-                    {session.gameType}
+                    📝 Тест
                   </div>
                   <div style={{
                     padding: '5px 12px',

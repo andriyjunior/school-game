@@ -1,7 +1,7 @@
 {
-  "name": "educational-games",
+  "name": "klasna-robota",
   "version": "1.0.0",
-  "description": "Educational games for school children - Computer Science",
+  "description": "Класна Робота - Professional educational platform for teachers and students (grades 1-11). Live testing, assessment, interactive assignments.",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -9,10 +9,17 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-free": "^7.1.0",
+    "@reduxjs/toolkit": "^2.10.1",
+    "@types/react": "^19.2.6",
+    "@types/react-dom": "^19.2.3",
+    "axios": "^1.13.2",
     "firebase": "^12.6.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-router-dom": "^7.9.6"
+    "react-redux": "^9.2.0",
+    "react-router-dom": "^7.9.6",
+    "typescript": "^5.9.3"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.1",

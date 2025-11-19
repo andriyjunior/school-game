@@ -76,12 +76,12 @@ export default function SoundGame({ onBack, onShowHelp, updateScore, category })
     <div className="game-screen active">
       <div className="game-header">
         <button className="back-btn" onClick={onBack}>← Назад</button>
-        <button className="help-btn" onClick={() => onShowHelp('sound')}>❓ Допомога</button>
+        <button className="help-btn" onClick={() => onShowHelp('sound')}><i className="fas fa-question-circle"></i> Допомога</button>
       </div>
 
       <div className="score">Рахунок: {score}</div>
       <h2 style={{ textAlign: 'center', color: '#667eea', margin: '20px 0' }}>
-        🔊 Хто як говорить?
+        <i className="fas fa-volume-up"></i> Хто як говорить?
       </h2>
 
       <div style={{ maxWidth: '600px', margin: '0 auto' }}>
@@ -168,14 +168,14 @@ export default function SoundGame({ onBack, onShowHelp, updateScore, category })
           }}>
             {isCorrect ? (
               <>
-                <div>🎉 Правильно!</div>
+                <div><i className="fas fa-check-circle"></i> Правильно!</div>
                 <div style={{ fontSize: '0.9em', marginTop: '10px' }}>
                   {currentSound.name} каже: {currentSound.sound}
                 </div>
               </>
             ) : (
               <>
-                <div>😔 Невірно!</div>
+                <div><i className="fas fa-times-circle"></i> Невірно!</div>
                 <div style={{ fontSize: '0.9em', marginTop: '10px' }}>
                   Так каже <strong>{currentSound.name}</strong>
                 </div>

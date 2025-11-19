@@ -67,12 +67,12 @@ export default function SpellGame({ onBack, onShowHelp, updateScore, category })
     <div className="game-screen active">
       <div className="game-header">
         <button className="back-btn" onClick={onBack}>← Назад</button>
-        <button className="help-btn" onClick={() => onShowHelp('spell')}>❓ Допомога</button>
+        <button className="help-btn" onClick={() => onShowHelp('spell')}><i className="fas fa-question-circle"></i> Допомога</button>
       </div>
 
       <div className="score">Рахунок: {score}</div>
       <h2 style={{ textAlign: 'center', color: '#667eea', margin: '20px 0' }}>
-        ✏️ Напиши Слово
+        <i className="fas fa-pen"></i> Напиши Слово
       </h2>
 
       <div style={{ maxWidth: '500px', margin: '0 auto' }}>
@@ -88,7 +88,7 @@ export default function SpellGame({ onBack, onShowHelp, updateScore, category })
             dangerouslySetInnerHTML={{ __html: getAnimalIcon(currentAnimal.name) }}
           />
           <div style={{ color: 'white', fontSize: '1.2em', marginBottom: '10px' }}>
-            💬 {currentAnimal.sound}
+            <i className="fas fa-comment"></i> {currentAnimal.sound}
           </div>
           <div style={{ color: 'white', fontSize: '1.1em', opacity: 0.9 }}>
             {currentAnimal.hint}
@@ -134,14 +134,14 @@ export default function SpellGame({ onBack, onShowHelp, updateScore, category })
           }}>
             {isCorrect ? (
               <>
-                <div>🎉 Правильно!</div>
+                <div><i className="fas fa-check-circle"></i> Правильно!</div>
                 <div style={{ fontSize: '0.9em', marginTop: '10px' }}>
                   Ти правильно написав: <strong>{currentAnimal.name}</strong>
                 </div>
               </>
             ) : (
               <>
-                <div>😔 Невірно!</div>
+                <div><i className="fas fa-times-circle"></i> Невірно!</div>
                 <div style={{ fontSize: '0.9em', marginTop: '10px' }}>
                   Правильна відповідь: <strong>{currentAnimal.name}</strong>
                 </div>

@@ -74,7 +74,7 @@ export default function MatchGame({ onBack, onShowHelp, updateScore, category })
 
       if (matchedPairs.length + 1 === gameAnimals.length) {
         setTimeout(() => {
-          alert('🎉 Вітаємо! Ти з\'єднав усі пари!');
+          alert('Вітаємо! Ти з\'єднав усі пари!');
           loadNewRound();
         }, 500);
       }
@@ -113,12 +113,12 @@ export default function MatchGame({ onBack, onShowHelp, updateScore, category })
     <div className="game-screen active">
       <div className="game-header">
         <button className="back-btn" onClick={onBack}>← Назад</button>
-        <button className="help-btn" onClick={() => onShowHelp('match')}>❓ Допомога</button>
+        <button className="help-btn" onClick={() => onShowHelp('match')}><i className="fas fa-question-circle"></i> Допомога</button>
       </div>
 
       <div className="score">Рахунок: {score}</div>
       <h2 style={{ textAlign: 'center', color: '#667eea', margin: '20px 0' }}>
-        🔗 З'єднай Слова
+        <i className="fas fa-link"></i> З'єднай Слова
       </h2>
 
       <div style={{ textAlign: 'center', marginBottom: '20px' }}>
@@ -131,7 +131,7 @@ export default function MatchGame({ onBack, onShowHelp, updateScore, category })
           fontSize: '1.1em',
           fontWeight: 'bold'
         }}>
-          {matchType === 'home' ? '🏠 З\'єднай тварин з їхніми домівками' : '🔊 З\'єднай тварин з їхніми звуками'}
+          {matchType === 'home' ? <><i className="fas fa-home"></i> З'єднай тварин з їхніми домівками</> : <><i className="fas fa-volume-up"></i> З'єднай тварин з їхніми звуками</>}
         </div>
         <div style={{ marginTop: '10px', color: '#666' }}>
           З'єднано: {matchedPairs.length}/{gameAnimals.length}
@@ -236,7 +236,7 @@ export default function MatchGame({ onBack, onShowHelp, updateScore, category })
                   opacity: isMatched ? 0.6 : 1
                 }}
               >
-                {matchType === 'home' ? '🏠 ' : '🔊 '}{matchValue}
+                {matchType === 'home' ? <><i className="fas fa-home"></i> </> : <><i className="fas fa-volume-up"></i> </>}{matchValue}
               </div>
             );
           })}
@@ -256,7 +256,7 @@ export default function MatchGame({ onBack, onShowHelp, updateScore, category })
             cursor: 'pointer'
           }}
         >
-          🔄 Новий раунд
+          <i className="fas fa-redo"></i> Новий раунд
         </button>
       </div>
     </div>

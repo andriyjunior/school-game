@@ -3,6 +3,7 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../../firebase/config';
 import { getAnalytics, getAllSessions, getPlayerStats } from '../../firebase/database';
 import LiveSessions from './LiveSessions';
+import TestList from './TestList';
 import './AdminDashboard.css';
 
 function AdminDashboard() {
@@ -156,6 +157,12 @@ function AdminDashboard() {
         >
           📊 Аналітика
         </button>
+        <button
+          className={view === 'tests' ? 'active' : ''}
+          onClick={() => setView('tests')}
+        >
+          📝 Тести
+        </button>
       </nav>
 
       {/* Content */}
@@ -185,6 +192,10 @@ function AdminDashboard() {
 
         {view === 'analytics' && analytics && (
           <AnalyticsView analytics={analytics} sessions={sessions} />
+        )}
+
+        {view === 'tests' && (
+          <TestList />
         )}
       </div>
     </div>

@@ -81,12 +81,12 @@ export default function GuessGame({ onBack, onShowHelp, updateScore, category })
     <div className="game-screen active">
       <div className="game-header">
         <button className="back-btn" onClick={onBack}>← Назад</button>
-        <button className="help-btn" onClick={() => onShowHelp('guess')}>❓ Допомога</button>
+        <button className="help-btn" onClick={() => onShowHelp('guess')}><i className="fas fa-question-circle"></i> Допомога</button>
       </div>
 
       <div className="score">Рахунок: {score}</div>
       <h2 style={{ textAlign: 'center', color: '#667eea', margin: '20px 0' }}>
-        🔮 Вгадай Тварину
+        <i className="fas fa-magic"></i> Вгадай Тварину
       </h2>
 
       <div className="guess-container" style={{ maxWidth: '600px', margin: '0 auto' }}>
@@ -101,9 +101,9 @@ export default function GuessGame({ onBack, onShowHelp, updateScore, category })
             Підказки:
           </h3>
           <div style={{ fontSize: '1.2em', lineHeight: '1.8' }}>
-            <div>💡 {currentAnimal.hint}</div>
-            {hintIndex >= 1 && <div>🏠 Живе в: {currentAnimal.home}</div>}
-            {hintIndex >= 2 && <div>🔊 Каже: {currentAnimal.sound}</div>}
+            <div><i className="fas fa-lightbulb"></i> {currentAnimal.hint}</div>
+            {hintIndex >= 1 && <div><i className="fas fa-home"></i> Живе в: {currentAnimal.home}</div>}
+            {hintIndex >= 2 && <div><i className="fas fa-volume-up"></i> Каже: {currentAnimal.sound}</div>}
           </div>
 
           {!showResult && hintIndex < 2 && (
@@ -120,7 +120,7 @@ export default function GuessGame({ onBack, onShowHelp, updateScore, category })
                 fontSize: '1em'
               }}
             >
-              🎁 Показати ще підказку
+              <i className="fas fa-gift"></i> Показати ще підказку
             </button>
           )}
         </div>
@@ -182,7 +182,11 @@ export default function GuessGame({ onBack, onShowHelp, updateScore, category })
             fontSize: '1.3em',
             marginBottom: '20px'
           }}>
-            {isCorrect ? '🎉 Правильно! Молодець!' : `😔 Невірно! Це була ${currentAnimal.name}`}
+            {isCorrect ? (
+              <><i className="fas fa-check-circle"></i> Правильно! Молодець!</>
+            ) : (
+              <><i className="fas fa-times-circle"></i> Невірно! Це була {currentAnimal.name}</>
+            )}
           </div>
         )}
 

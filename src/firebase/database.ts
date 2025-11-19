@@ -10,22 +10,35 @@ import {
   where,
   orderBy,
   limit,
-  Timestamp,
   serverTimestamp,
   onSnapshot,
-  deleteDoc
+  deleteDoc,
+  QueryConstraint,
+  Unsubscribe,
+  DocumentData,
 } from 'firebase/firestore';
 import { db } from './config';
+import {
+  PlayerClass,
+  Session,
+  GameResult,
+  Analytics,
+  PlayerStats,
+  LiveSession,
+  LiveSessionAnswer,
+  GameType,
+  CategoryType,
+} from '../types';
 
 // ==================== SESSION MANAGEMENT ====================
 
 /**
  * Create a new game session
- * @param {string} playerName - Player's name
- * @param {number} playerClass - Player's class (2 or 4)
- * @returns {Promise<string>} - Session ID
  */
-export const createSession = async (playerName, playerClass) => {
+export const createSession = async (
+  playerName: string,
+  playerClass: PlayerClass
+): Promise<string> => {
   try {
     const sessionRef = await addDoc(collection(db, 'sessions'), {
       playerName,
@@ -36,7 +49,7 @@ export const createSession = async (playerName, playerClass) => {
       gamesPlayed: [],
       achievementsUnlocked: [],
       maxStreak: 0,
-      isActive: true
+      isActive: true,
     });
     return sessionRef.id;
   } catch (error) {
@@ -47,10 +60,11 @@ export const createSession = async (playerName, playerClass) => {
 
 /**
  * Update session with game result
- * @param {string} sessionId - Session ID
- * @param {object} gameResult - Game result data
  */
-export const saveGameResult = async (sessionId, gameResult) => {
+export const saveGameResult = async (
+  sessionId: string,
+  gameResult: Partial<GameResult>
+): Promise<void> => {
   try {
     const sessionRef = doc(db, 'sessions', sessionId);
 
@@ -58,15 +72,13 @@ export const saveGameResult = async (sessionId, gameResult) => {
     await addDoc(collection(db, 'results'), {
       sessionId,
       ...gameResult,
-      timestamp: serverTimestamp()
+      timestamp: serverTimestamp(),
     });
 
     // Update session with aggregated data
-    // Note: In production, you'd fetch current data first, but for simplicity:
     await updateDoc(sessionRef, {
-      lastActivity: serverTimestamp()
+      lastActivity: serverTimestamp(),
     });
-
   } catch (error) {
     console.error('Error saving game result:', error);
     throw error;
@@ -75,10 +87,15 @@ export const saveGameResult = async (sessionId, gameResult) => {
 
 /**
  * End a game session
- * @param {string} sessionId - Session ID
- * @param {object} finalStats - Final statistics
  */
-export const endSession = async (sessionId, finalStats) => {
+export const endSession = async (
+  sessionId: string,
+  finalStats: {
+    totalScore: number;
+    maxStreak: number;
+    achievements: string[];
+  }
+): Promise<void> => {
   try {
     const sessionRef = doc(db, 'sessions', sessionId);
     await updateDoc(sessionRef, {
@@ -86,7 +103,7 @@ export const endSession = async (sessionId, finalStats) => {
       isActive: false,
       totalScore: finalStats.totalScore,
       maxStreak: finalStats.maxStreak,
-      achievementsUnlocked: finalStats.achievements
+      achievementsUnlocked: finalStats.achievements,
     });
   } catch (error) {
     console.error('Error ending session:', error);
@@ -96,15 +113,21 @@ export const endSession = async (sessionId, finalStats) => {
 
 // ==================== ADMIN QUERIES ====================
 
+interface SessionFilters {
+  playerClass?: PlayerClass;
+  playerName?: string;
+  limit?: number;
+}
+
 /**
  * Get all sessions with optional filters
- * @param {object} filters - Filter options
- * @returns {Promise<Array>} - Array of sessions
  */
-export const getAllSessions = async (filters = {}) => {
+export const getAllSessions = async (
+  filters: SessionFilters = {}
+): Promise<Session[]> => {
   try {
-    let q = collection(db, 'sessions');
-    const constraints = [];
+    const baseCollection = collection(db, 'sessions');
+    const constraints: QueryConstraint[] = [];
 
     if (filters.playerClass) {
       constraints.push(where('playerClass', '==', filters.playerClass));
@@ -121,30 +144,34 @@ export const getAllSessions = async (filters = {}) => {
       constraints.push(limit(filters.limit));
     }
 
-    if (constraints.length > 0) {
-      q = query(q, ...constraints);
-    }
+    const q = constraints.length > 0 ? query(baseCollection, ...constraints) : baseCollection;
 
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({
+    return querySnapshot.docs.map((doc) => ({
       id: doc.id,
-      ...doc.data()
-    }));
+      ...doc.data(),
+    })) as Session[];
   } catch (error) {
     console.error('Error getting sessions:', error);
     throw error;
   }
 };
 
+interface ResultFilters {
+  gameType?: GameType;
+  sessionId?: string;
+  limit?: number;
+}
+
 /**
  * Get all game results with optional filters
- * @param {object} filters - Filter options
- * @returns {Promise<Array>} - Array of results
  */
-export const getAllResults = async (filters = {}) => {
+export const getAllResults = async (
+  filters: ResultFilters = {}
+): Promise<GameResult[]> => {
   try {
-    let q = collection(db, 'results');
-    const constraints = [];
+    const baseCollection = collection(db, 'results');
+    const constraints: QueryConstraint[] = [];
 
     if (filters.gameType) {
       constraints.push(where('gameType', '==', filters.gameType));
@@ -160,15 +187,13 @@ export const getAllResults = async (filters = {}) => {
       constraints.push(limit(filters.limit));
     }
 
-    if (constraints.length > 0) {
-      q = query(q, ...constraints);
-    }
+    const q = constraints.length > 0 ? query(baseCollection, ...constraints) : baseCollection;
 
     const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({
+    return querySnapshot.docs.map((doc) => ({
       id: doc.id,
-      ...doc.data()
-    }));
+      ...doc.data(),
+    })) as unknown as GameResult[];
   } catch (error) {
     console.error('Error getting results:', error);
     throw error;
@@ -177,9 +202,8 @@ export const getAllResults = async (filters = {}) => {
 
 /**
  * Get analytics data
- * @returns {Promise<object>} - Analytics summary
  */
-export const getAnalytics = async () => {
+export const getAnalytics = async (): Promise<Analytics> => {
   try {
     console.log('Fetching analytics data...');
     // Limit queries for better performance
@@ -189,26 +213,28 @@ export const getAnalytics = async () => {
     console.log(`Loaded ${sessions.length} sessions and ${results.length} results`);
 
     // Calculate statistics
-    const totalPlayers = new Set(sessions.map(s => s.playerName)).size;
+    const totalPlayers = new Set(sessions.map((s) => s.playerName)).size;
     const totalSessions = sessions.length;
     const totalGames = results.length;
-    const averageScore = totalSessions > 0
-      ? sessions.reduce((sum, s) => sum + (s.totalScore || 0), 0) / totalSessions
-      : 0;
+    const averageScore =
+      totalSessions > 0
+        ? sessions.reduce((sum, s) => sum + (s.totalScore || 0), 0) / totalSessions
+        : 0;
 
     // Game type distribution
-    const gameTypeCounts = {};
-    results.forEach(r => {
+    const gameTypeCounts: { [gameType: string]: number } = {};
+    results.forEach((r) => {
       if (r.gameType) {
         gameTypeCounts[r.gameType] = (gameTypeCounts[r.gameType] || 0) + 1;
       }
     });
 
     // Class distribution
-    const classCounts = {};
-    sessions.forEach(s => {
+    const classCounts: { [classNumber: string]: number } = {};
+    sessions.forEach((s) => {
       if (s.playerClass) {
-        classCounts[s.playerClass] = (classCounts[s.playerClass] || 0) + 1;
+        classCounts[s.playerClass.toString()] =
+          (classCounts[s.playerClass.toString()] || 0) + 1;
       }
     });
 
@@ -219,7 +245,7 @@ export const getAnalytics = async () => {
       averageScore: Math.round(averageScore),
       gameTypeCounts,
       classCounts,
-      recentSessions: sessions.slice(0, 10)
+      recentSessions: sessions.slice(0, 10),
     };
   } catch (error) {
     console.error('Error getting analytics:', error);
@@ -229,22 +255,20 @@ export const getAnalytics = async () => {
 
 /**
  * Get player statistics
- * @param {string} playerName - Player name
- * @returns {Promise<object>} - Player stats
  */
-export const getPlayerStats = async (playerName) => {
+export const getPlayerStats = async (playerName: string): Promise<PlayerStats> => {
   try {
     const sessions = await getAllSessions({ playerName });
 
     const totalScore = sessions.reduce((sum, s) => sum + (s.totalScore || 0), 0);
     const totalGames = sessions.length;
     const averageScore = totalGames > 0 ? totalScore / totalGames : 0;
-    const maxStreak = Math.max(...sessions.map(s => s.maxStreak || 0));
+    const maxStreak = Math.max(...sessions.map((s) => s.maxStreak || 0));
 
     // Get all achievements
-    const allAchievements = new Set();
-    sessions.forEach(s => {
-      (s.achievementsUnlocked || []).forEach(a => allAchievements.add(a));
+    const allAchievements = new Set<string>();
+    sessions.forEach((s) => {
+      (s.achievementsUnlocked || []).forEach((a) => allAchievements.add(a));
     });
 
     return {
@@ -254,7 +278,7 @@ export const getPlayerStats = async (playerName) => {
       averageScore: Math.round(averageScore),
       maxStreak,
       achievements: Array.from(allAchievements),
-      recentSessions: sessions.slice(0, 5)
+      recentSessions: sessions.slice(0, 5),
     };
   } catch (error) {
     console.error('Error getting player stats:', error);
@@ -264,22 +288,30 @@ export const getPlayerStats = async (playerName) => {
 
 // ==================== LIVE SESSIONS (ADMIN) ====================
 
+interface LiveSessionData {
+  title: string;
+  testId: string;
+  playerClass: PlayerClass;
+  participants?: string[];
+  adminEmail?: string;
+}
+
 /**
- * Create a live game session that admin can monitor
- * @param {object} sessionData - Session configuration
- * @returns {Promise<string>} - Live session ID
+ * Create a live test session that admin can monitor
  */
-export const createLiveSession = async (sessionData) => {
+export const createLiveSession = async (
+  sessionData: LiveSessionData
+): Promise<string> => {
   try {
     console.log('Creating live session in Firestore with data:', sessionData);
 
     const docData = {
       ...sessionData,
       createdAt: serverTimestamp(),
-      status: 'active', // active, paused, completed
-      participants: sessionData.participants || [], // array of player names or 'all'
-      results: {}, // map of playerName -> their results
-      createdBy: sessionData.adminEmail || 'admin'
+      status: 'active' as const,
+      participants: sessionData.participants || [],
+      results: {},
+      createdBy: sessionData.adminEmail || 'admin',
     };
 
     console.log('Document data to be saved:', docData);
@@ -290,16 +322,47 @@ export const createLiveSession = async (sessionData) => {
     return liveSessionRef.id;
   } catch (error) {
     console.error('Error creating live session:', error);
-    console.error('Error details:', error.code, error.message);
+    if (error instanceof Error) {
+      console.error('Error details:', error.message);
+    }
+    throw error;
+  }
+};
+
+/**
+ * Get all live sessions (including completed and paused)
+ */
+export const getAllLiveSessions = async (): Promise<LiveSession[]> => {
+  try {
+    console.log('Fetching all live sessions from Firestore...');
+
+    const querySnapshot = await getDocs(collection(db, 'liveSessions'));
+    console.log('Found documents:', querySnapshot.size);
+
+    const allSessions = querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    })) as LiveSession[];
+
+    // Sort by creation date (newest first)
+    const sortedSessions = allSessions.sort((a, b) => {
+      const timeA = a.createdAt?.toDate?.() || new Date(0);
+      const timeB = b.createdAt?.toDate?.() || new Date(0);
+      return timeB.getTime() - timeA.getTime();
+    });
+
+    console.log('All sessions:', sortedSessions);
+    return sortedSessions;
+  } catch (error) {
+    console.error('Error getting all live sessions:', error);
     throw error;
   }
 };
 
 /**
  * Get all active live sessions
- * @returns {Promise<Array>} - Array of active live sessions
  */
-export const getActiveLiveSessions = async () => {
+export const getActiveLiveSessions = async (): Promise<LiveSession[]> => {
   try {
     console.log('Fetching live sessions from Firestore...');
 
@@ -307,20 +370,20 @@ export const getActiveLiveSessions = async () => {
     const querySnapshot = await getDocs(collection(db, 'liveSessions'));
     console.log('Found documents:', querySnapshot.size);
 
-    const allSessions = querySnapshot.docs.map(doc => ({
+    const allSessions = querySnapshot.docs.map((doc) => ({
       id: doc.id,
-      ...doc.data()
-    }));
+      ...doc.data(),
+    })) as LiveSession[];
 
     console.log('All sessions:', allSessions);
 
     // Filter active sessions and sort
     const activeSessions = allSessions
-      .filter(session => session.status === 'active')
+      .filter((session) => session.status === 'active')
       .sort((a, b) => {
         const timeA = a.createdAt?.toDate?.() || new Date(0);
         const timeB = b.createdAt?.toDate?.() || new Date(0);
-        return timeB - timeA;
+        return timeB.getTime() - timeA.getTime();
       });
 
     console.log('Active sessions:', activeSessions);
@@ -333,18 +396,18 @@ export const getActiveLiveSessions = async () => {
 
 /**
  * Get a specific live session
- * @param {string} sessionId - Live session ID
- * @returns {Promise<object>} - Live session data
  */
-export const getLiveSession = async (sessionId) => {
+export const getLiveSession = async (
+  sessionId: string
+): Promise<LiveSession | null> => {
   try {
     const sessionRef = doc(db, 'liveSessions', sessionId);
     const sessionDoc = await getDoc(sessionRef);
     if (sessionDoc.exists()) {
       return {
         id: sessionDoc.id,
-        ...sessionDoc.data()
-      };
+        ...sessionDoc.data(),
+      } as LiveSession;
     }
     return null;
   } catch (error) {
@@ -355,37 +418,43 @@ export const getLiveSession = async (sessionId) => {
 
 /**
  * Subscribe to live session updates (real-time)
- * @param {string} sessionId - Live session ID
- * @param {function} callback - Callback function for updates
- * @returns {function} - Unsubscribe function
  */
-export const subscribeLiveSession = (sessionId, callback) => {
+export const subscribeLiveSession = (
+  sessionId: string,
+  callback: (session: LiveSession) => void
+): Unsubscribe => {
   const sessionRef = doc(db, 'liveSessions', sessionId);
-  return onSnapshot(sessionRef, (doc) => {
-    if (doc.exists()) {
-      callback({
-        id: doc.id,
-        ...doc.data()
-      });
+  return onSnapshot(
+    sessionRef,
+    (doc) => {
+      if (doc.exists()) {
+        callback({
+          id: doc.id,
+          ...doc.data(),
+        } as LiveSession);
+      }
+    },
+    (error) => {
+      console.error('Error in live session subscription:', error);
     }
-  }, (error) => {
-    console.error('Error in live session subscription:', error);
-  });
+  );
 };
 
 /**
  * Update player result in live session
- * @param {string} sessionId - Live session ID
- * @param {string} playerName - Player name
- * @param {object} result - Result data
  */
-export const updateLiveSessionResult = async (sessionId, playerName, result) => {
+export const updateLiveSessionResult = async (
+  sessionId: string,
+  playerName: string,
+  result: Partial<LiveSessionAnswer>
+): Promise<void> => {
   try {
     const sessionRef = doc(db, 'liveSessions', sessionId);
     const sessionDoc = await getDoc(sessionRef);
 
     if (sessionDoc.exists()) {
-      const currentResults = sessionDoc.data().results || {};
+      const data = sessionDoc.data();
+      const currentResults = (data.results as DocumentData) || {};
 
       // Initialize player results if not exists
       if (!currentResults[playerName]) {
@@ -393,21 +462,22 @@ export const updateLiveSessionResult = async (sessionId, playerName, result) => 
           answers: [],
           score: 0,
           startedAt: serverTimestamp(),
-          lastUpdate: serverTimestamp()
+          lastUpdate: serverTimestamp(),
         };
       }
 
       // Add new answer (use Date instead of serverTimestamp in arrays)
       currentResults[playerName].answers.push({
         ...result,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
 
-      currentResults[playerName].score = (currentResults[playerName].score || 0) + (result.points || 0);
+      currentResults[playerName].score =
+        (currentResults[playerName].score || 0) + (result.points || 0);
       currentResults[playerName].lastUpdate = serverTimestamp();
 
       await updateDoc(sessionRef, {
-        results: currentResults
+        results: currentResults,
       });
     }
   } catch (error) {
@@ -418,14 +488,13 @@ export const updateLiveSessionResult = async (sessionId, playerName, result) => 
 
 /**
  * End a live session
- * @param {string} sessionId - Live session ID
  */
-export const endLiveSession = async (sessionId) => {
+export const endLiveSession = async (sessionId: string): Promise<void> => {
   try {
     const sessionRef = doc(db, 'liveSessions', sessionId);
     await updateDoc(sessionRef, {
       status: 'completed',
-      endedAt: serverTimestamp()
+      endedAt: serverTimestamp(),
     });
   } catch (error) {
     console.error('Error ending live session:', error);
@@ -435,9 +504,8 @@ export const endLiveSession = async (sessionId) => {
 
 /**
  * Delete a live session
- * @param {string} sessionId - Live session ID
  */
-export const deleteLiveSession = async (sessionId) => {
+export const deleteLiveSession = async (sessionId: string): Promise<void> => {
   try {
     const sessionRef = doc(db, 'liveSessions', sessionId);
     await deleteDoc(sessionRef);

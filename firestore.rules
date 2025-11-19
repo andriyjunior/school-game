@@ -1,0 +1,49 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Sessions collection - anyone can create and read
+    match /sessions/{sessionId} {
+      allow create: if true; // Allow students to create sessions
+      allow read: if true; // Allow anyone to read sessions (needed for admin dashboard)
+      allow update: if true; // Allow students to update their own sessions
+      allow delete: if true; // Allow cleanup
+    }
+
+    // Game results collection - anyone can create and read
+    match /gameResults/{resultId} {
+      allow create: if true; // Allow students to save game results
+      allow read: if true; // Allow anyone to read (needed for analytics)
+      allow update: if true;
+      allow delete: if true;
+    }
+
+    // Live sessions collection - anyone can read, write for admin panel
+    match /liveSessions/{sessionId} {
+      allow read: if true; // Students need to see active sessions
+      allow write: if true; // Allow admin panel to create/update sessions
+    }
+
+    // Custom tests collection - everyone can read and write
+    match /customTests/{testId} {
+      allow read: if true; // Everyone can read tests
+      allow create: if true; // Allow test creation
+      allow update: if true; // Allow test updates
+      allow delete: if true; // Allow test deletion
+    }
+
+    // Test attempts collection - anyone can create and read
+    match /testAttempts/{attemptId} {
+      allow create: if true; // Students can create test attempts
+      allow read: if true; // Anyone can read attempts
+      allow update: if true; // Allow updates
+      allow delete: if true; // Allow deletion
+    }
+
+    // Default: allow all for development
+    match /{document=**} {
+      allow read, write: if true;
+    }
+  }
+}

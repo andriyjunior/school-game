@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { subscribeLiveSession, endLiveSession, deleteLiveSession } from '../../firebase/database';
+import { getTestById } from '../../firebase/testDatabase';
 
 export default function LiveSessionMonitor({ sessionId, onClose }) {
   const [sessionData, setSessionData] = useState(null);
+  const [testData, setTestData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -10,6 +12,13 @@ export default function LiveSessionMonitor({ sessionId, onClose }) {
     const unsubscribe = subscribeLiveSession(sessionId, (data) => {
       setSessionData(data);
       setLoading(false);
+
+      // Load test data if we have a testId
+      if (data?.testId) {
+        getTestById(data.testId)
+          .then(test => setTestData(test))
+          .catch(err => console.error('Error loading test:', err));
+      }
     });
 
     return () => unsubscribe();
@@ -38,6 +47,30 @@ export default function LiveSessionMonitor({ sessionId, onClose }) {
         alert('Помилка видалення сесії');
       }
     }
+  };
+
+  // Convert percentage to Ukrainian 12-point scale
+  const getUkrainianGrade = (percentage) => {
+    if (percentage >= 100) return 12;
+    if (percentage >= 90) return 11;
+    if (percentage >= 82) return 10;
+    if (percentage >= 75) return 9;
+    if (percentage >= 67) return 8;
+    if (percentage >= 60) return 7;
+    if (percentage >= 53) return 6;
+    if (percentage >= 46) return 5;
+    if (percentage >= 39) return 4;
+    if (percentage >= 25) return 3;
+    if (percentage >= 12) return 2;
+    return 1;
+  };
+
+  // Get grade color
+  const getGradeColor = (grade) => {
+    if (grade >= 10) return '#28a745'; // Green for excellent
+    if (grade >= 7) return '#ffc107'; // Yellow for good
+    if (grade >= 4) return '#ff9800'; // Orange for satisfactory
+    return '#dc3545'; // Red for poor
   };
 
   if (loading) {
@@ -119,18 +152,6 @@ export default function LiveSessionMonitor({ sessionId, onClose }) {
         <div style={{
           padding: '15px',
           borderRadius: '10px',
-          background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-          color: 'white'
-        }}>
-          <div style={{ fontSize: '0.9em', opacity: 0.9 }}>Гра</div>
-          <div style={{ fontSize: '1.3em', fontWeight: 'bold', marginTop: '5px' }}>
-            {sessionData.gameType}
-          </div>
-        </div>
-
-        <div style={{
-          padding: '15px',
-          borderRadius: '10px',
           background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
           color: 'white'
         }}>
@@ -168,6 +189,87 @@ export default function LiveSessionMonitor({ sessionId, onClose }) {
         </div>
       )}
 
+      {/* Ukrainian Grades Summary Table */}
+      {playerNames.length > 0 && testData && (
+        <div style={{ marginBottom: '30px' }}>
+          <h3 style={{ marginBottom: '15px', color: '#333' }}>
+            🎓 Оцінки (12-бальна система):
+          </h3>
+          <div style={{
+            background: 'white',
+            borderRadius: '12px',
+            border: '2px solid #e0e0e0',
+            overflow: 'hidden'
+          }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', color: 'white' }}>
+                  <th style={{ padding: '15px', textAlign: 'left', fontWeight: 'bold' }}>№</th>
+                  <th style={{ padding: '15px', textAlign: 'left', fontWeight: 'bold' }}>Учень</th>
+                  <th style={{ padding: '15px', textAlign: 'center', fontWeight: 'bold' }}>Балів</th>
+                  <th style={{ padding: '15px', textAlign: 'center', fontWeight: 'bold' }}>%</th>
+                  <th style={{ padding: '15px', textAlign: 'center', fontWeight: 'bold' }}>Оцінка (12-бальна)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {playerNames
+                  .map(playerName => {
+                    const playerResult = results[playerName];
+                    const score = playerResult.score || 0;
+                    const maxScore = testData.questions.reduce((sum, q) => sum + (q.points || 1), 0);
+                    const percentage = maxScore > 0 ? Math.round((score / maxScore) * 100) : 0;
+                    const ukrainianGrade = getUkrainianGrade(percentage);
+
+                    return {
+                      name: playerName,
+                      score,
+                      percentage,
+                      ukrainianGrade
+                    };
+                  })
+                  .sort((a, b) => b.score - a.score) // Sort by score descending
+                  .map((player, index) => (
+                    <tr
+                      key={player.name}
+                      style={{
+                        borderBottom: '1px solid #e0e0e0',
+                        background: index % 2 === 0 ? '#f8f9fa' : 'white'
+                      }}
+                    >
+                      <td style={{ padding: '12px', fontWeight: 'bold', color: '#666' }}>
+                        {index + 1}
+                      </td>
+                      <td style={{ padding: '12px', fontWeight: 'bold' }}>
+                        👤 {player.name}
+                      </td>
+                      <td style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold', color: '#667eea' }}>
+                        {player.score}
+                      </td>
+                      <td style={{ padding: '12px', textAlign: 'center', color: '#666' }}>
+                        {player.percentage}%
+                      </td>
+                      <td style={{ padding: '12px', textAlign: 'center' }}>
+                        <div style={{
+                          display: 'inline-block',
+                          padding: '8px 20px',
+                          borderRadius: '25px',
+                          background: getGradeColor(player.ukrainianGrade),
+                          color: 'white',
+                          fontWeight: 'bold',
+                          fontSize: '1.1em',
+                          minWidth: '50px'
+                        }}>
+                          {player.ukrainianGrade}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       <h3 style={{ marginBottom: '15px', color: '#333' }}>
         📊 Результати в реальному часі:
       </h3>
@@ -183,7 +285,7 @@ export default function LiveSessionMonitor({ sessionId, onClose }) {
           <div style={{ fontSize: '3em', marginBottom: '10px' }}>⏳</div>
           <p>Очікування на учнів...</p>
           <p style={{ fontSize: '0.9em' }}>
-            Результати з'являться, коли учні почнуть грати
+            Результати з'являться, коли учні почнуть тест
           </p>
         </div>
       ) : (
