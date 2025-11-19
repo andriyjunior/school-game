@@ -7,7 +7,6 @@ import {
 } from './store/slices/playerSlice';
 import {
   setCurrentGame,
-  setSelectedCategory,
   updateScoreAsync,
   resetGame,
 } from './store/slices/gameSlice';
@@ -27,17 +26,9 @@ import { GameType, PlayerClass, CategoryType, GameDetails } from './types';
 import PlayerNameModal from './components/PlayerNameModal.jsx';
 import HelpModal from './components/HelpModal.jsx';
 import MainMenu from './components/MainMenu.jsx';
-import CategorySelector from './components/CategorySelector.jsx';
 import StatsBar from './components/StatsBar.jsx';
 
 // Import game components
-import GuessGame from './components/games/class2/GuessGame.jsx';
-import MemoryGame from './components/games/class2/MemoryGame.jsx';
-import SpellGame from './components/games/class2/SpellGame.jsx';
-import MatchGame from './components/games/class2/MatchGame.jsx';
-import SoundGame from './components/games/class2/SoundGame.jsx';
-import AlgorithmAdventure from './components/games/class3/AlgorithmAdventure.jsx';
-import DebugGame from './components/games/class4/DebugGame.jsx';
 import TakeTest from './components/games/TakeTest.jsx';
 
 function App() {
@@ -153,19 +144,9 @@ function App() {
     dispatch(setCurrentGame(gameType));
   };
 
-  // Handle category selection
-  const handleSelectCategory = (category: CategoryType) => {
-    dispatch(setSelectedCategory(category));
-  };
-
   // Handle back to menu
   const handleBackToMenu = () => {
     dispatch(resetGame());
-  };
-
-  // Handle back to category selector
-  const handleBackToCategories = () => {
-    dispatch(setSelectedCategory(''));
   };
 
   // Handle score update
@@ -178,22 +159,8 @@ function App() {
     dispatch(openHelp(gameType));
   };
 
-  // Game name map for category selector
-  const getGameName = (gameType: GameType | ''): string => {
-    const gameNames: Record<string, string> = {
-      guess: '🔮 Вгадай Тварину',
-      memory: '🃏 Знайди Пару',
-      spell: '✏️ Напиши Слово',
-      match: "🔗 З'єднай Слова",
-      sound: '🔊 Хто як говорить?',
-    };
-    return gameNames[gameType] || '';
-  };
-
   // Render current game
   const renderGame = () => {
-    const class2Games: GameType[] = ['guess', 'memory', 'spell', 'match', 'sound'];
-
     // If there's an active live session but game isn't loaded yet, show loading
     if (liveSession.activeLiveSession && liveSession.activeLiveSession.status === 'active' && !game.currentGame) {
       return (
@@ -223,115 +190,7 @@ function App() {
       );
     }
 
-    // For class 2 games, skip category selector if live session is active
-    if (
-      game.currentGame &&
-      class2Games.includes(game.currentGame as GameType) &&
-      !game.selectedCategory &&
-      !liveSession.activeLiveSession
-    ) {
-      return (
-        <CategorySelector
-          gameName={getGameName(game.currentGame as GameType)}
-          onSelectCategory={handleSelectCategory}
-          onBack={handleBackToMenu}
-        />
-      );
-    }
-
     switch (game.currentGame) {
-      // Class 2 games
-      case 'guess':
-        return (
-          <GuessGame
-            onBack={handleBackToCategories}
-            onShowHelp={handleShowHelp}
-            updateScore={handleUpdateScore}
-            category={game.selectedCategory}
-          />
-        );
-
-      case 'memory':
-        return (
-          <MemoryGame
-            onBack={handleBackToCategories}
-            onShowHelp={handleShowHelp}
-            updateScore={handleUpdateScore}
-            category={game.selectedCategory}
-          />
-        );
-
-      case 'spell':
-        return (
-          <SpellGame
-            onBack={handleBackToCategories}
-            onShowHelp={handleShowHelp}
-            updateScore={handleUpdateScore}
-            category={game.selectedCategory}
-          />
-        );
-
-      case 'match':
-        return (
-          <MatchGame
-            onBack={handleBackToCategories}
-            onShowHelp={handleShowHelp}
-            updateScore={handleUpdateScore}
-            category={game.selectedCategory}
-          />
-        );
-
-      case 'sound':
-        return (
-          <SoundGame
-            onBack={handleBackToCategories}
-            onShowHelp={handleShowHelp}
-            updateScore={handleUpdateScore}
-            category={game.selectedCategory}
-          />
-        );
-
-      // Class 3 games
-      case 'algorithm-adventure':
-        return (
-          <AlgorithmAdventure
-            onBack={handleBackToMenu}
-            onShowHelp={handleShowHelp}
-            updateScore={handleUpdateScore}
-          />
-        );
-
-      // Class 4 games
-      case 'binary':
-        return <div>BinaryGame - Create component</div>;
-
-      case 'parts':
-        return <div>PartsGame - Create component</div>;
-
-      case 'algorithm':
-        return <div>AlgorithmGame - Create component</div>;
-
-      case 'coding':
-        return <div>CodingGame - Create component</div>;
-
-      case 'pattern':
-        return <div>PatternGame - Create component</div>;
-
-      case 'pixel':
-        return <div>PixelArtGame - Create component</div>;
-
-      case 'debug':
-        return (
-          <DebugGame
-            onBack={handleBackToMenu}
-            onShowHelp={handleShowHelp}
-            updateScore={handleUpdateScore}
-          />
-        );
-
-      case 'sort':
-        return <div>SortGame - Create component</div>;
-
       case 'custom-test':
         return (
           <TakeTest
