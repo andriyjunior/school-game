@@ -1130,3 +1130,187 @@ h1 {
     margin: 20px 0;
     border: 2px solid #667eea;
 }
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    .container {
+        padding: 20px;
+        border-radius: 20px;
+    }
+
+    h1 {
+        font-size: 1.8em;
+        margin-bottom: 15px;
+    }
+
+    .modal-content, .help-modal-content {
+        padding: 25px;
+        width: 95%;
+    }
+
+    .stats-bar {
+        padding: 10px;
+        margin-bottom: 15px;
+    }
+
+    .stat-value {
+        font-size: 1.4em;
+    }
+
+    .menu {
+        gap: 12px;
+    }
+
+    .menu-btn {
+        padding: 20px 15px;
+        font-size: 1.1em;
+    }
+
+    .class-selector {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .class-btn {
+        padding: 12px;
+        font-size: 1.3em;
+    }
+
+    .memory-grid {
+        gap: 10px;
+    }
+
+    .option-btn {
+        padding: 15px;
+        font-size: 1.1em;
+    }
+
+    .match-container {
+        gap: 15px;
+    }
+
+    .match-item {
+        padding: 15px;
+        font-size: 1.1em;
+    }
+
+    .animal-icon {
+        width: 150px;
+        height: 150px;
+        margin: 20px auto;
+    }
+
+    .binary-question {
+        font-size: 2.5em;
+    }
+
+    .pattern-display {
+        padding: 20px;
+        gap: 10px;
+        font-size: 2em;
+    }
+
+    .pattern-item {
+        width: 60px;
+        height: 60px;
+    }
+
+    .number-card {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5em;
+    }
+
+    .numbers-container {
+        padding: 20px;
+        gap: 10px;
+    }
+
+    .algorithm-container {
+        padding: 15px;
+    }
+
+    .algorithm-step {
+        padding: 15px;
+        font-size: 1.1em;
+    }
+
+    .pixel-cell {
+        width: 30px;
+        height: 30px;
+    }
+
+    .code-display {
+        padding: 15px;
+        font-size: 1em;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 5px;
+    }
+
+    .container {
+        padding: 15px;
+        border-radius: 15px;
+    }
+
+    h1 {
+        font-size: 1.5em;
+    }
+
+    .modal-content, .help-modal-content {
+        padding: 20px;
+    }
+
+    .menu {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .menu-btn {
+        padding: 18px 12px;
+        font-size: 1em;
+    }
+
+    .stats-bar {
+        flex-direction: column;
+        gap: 10px;
+        padding: 10px;
+    }
+
+    .options {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .memory-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+    }
+
+    .spell-input {
+        font-size: 1.5em;
+        padding: 15px;
+    }
+
+    .binary-question {
+        font-size: 2em;
+    }
+
+    .pattern-display {
+        font-size: 1.5em;
+        padding: 15px;
+    }
+
+    .number-card {
+        width: 50px;
+        height: 50px;
+        font-size: 1.3em;
+    }
+}
