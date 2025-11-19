@@ -1,9 +1,9 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   plugins: [react()],
-  base: '/school-game/',
+  base: mode === 'production' ? '/school-game/' : '/',
   build: {
     outDir: 'dist',
     assetsDir: 'assets',
@@ -21,4 +21,4 @@ export default defineConfig({
     port: 3321,
     open: true
   }
-})
+}))
