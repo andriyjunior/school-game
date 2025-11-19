@@ -30,6 +30,7 @@ import StatsBar from './components/StatsBar.jsx';
 
 // Import game components
 import TakeTest from './components/games/TakeTest.jsx';
+import AlgorithmGame from './components/games/class2/AlgorithmGame.tsx';
 
 function App() {
   const dispatch = useAppDispatch();
@@ -191,6 +192,15 @@ function App() {
     }
 
     switch (game.currentGame) {
+      case 'algorithm-game':
+        return (
+          <AlgorithmGame
+            onBack={handleBackToMenu}
+            onShowHelp={handleShowHelp}
+            updateScore={handleUpdateScore}
+          />
+        );
+
       case 'custom-test':
         return (
           <TakeTest

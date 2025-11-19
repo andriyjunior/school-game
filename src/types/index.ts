@@ -17,6 +17,7 @@ export type GameType =
   | 'spell'
   | 'match'
   | 'sound'
+  | 'algorithm-game'
   // Class 3 games
   | 'algorithm-adventure'
   // Class 4 games

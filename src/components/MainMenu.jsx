@@ -1,6 +1,12 @@
 export default function MainMenu({ playerClass, onStartGame }) {
   const getGamesForClass = (classNumber) => {
-    // All classes (1-11) only have tests - no games
+    // Class 2 has the algorithm game
+    if (classNumber === 2) {
+      return [
+        { id: 'algorithm-game', name: '🎯 Алгоритм Пригод', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }
+      ];
+    }
+    // All other classes (1, 3-11) only have tests - no games
     return null;
   };
 
