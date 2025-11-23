@@ -6,6 +6,7 @@ import { colors, spacing, fontSize, borderRadius, gap } from '../../styles/token
 export default function AITestGenerator({ onClose, onTestGenerated }) {
   const [subject, setSubject] = useState('computer-science');
   const [playerClass, setPlayerClass] = useState(1);
+  const [questionCount, setQuestionCount] = useState(10);
   const [customPrompt, setCustomPrompt] = useState('');
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState('');
@@ -115,7 +116,6 @@ export default function AITestGenerator({ onClose, onTestGenerated }) {
 Використовуй різні типи питань:
 1. "multiple-choice" - питання з 4 варіантами відповідей (correctAnswer - індекс від 0 до 3)
 2. "true-false" - питання так/ні (correctAnswer - "true" або "false")
-3. "fill-blank" - заповнити пропуск (correctAnswer - текстова відповідь)
 
 Поверни ТІЛЬКИ JSON об'єкт в такому форматі (без додаткового тексту):
 
@@ -137,18 +137,11 @@ export default function AITestGenerator({ onClose, onTestGenerated }) {
       "correctAnswer": "true",
       "points": 5,
       "explanation": "Пояснення"
-    },
-    {
-      "type": "fill-blank",
-      "question": "Текст питання з пропуском?",
-      "correctAnswer": "правильна відповідь",
-      "points": 10,
-      "explanation": "Пояснення"
     }
   ]
 }
 
-Створи 5-10 питань різної складності. Переконайся що:
+Створи РІВНО ${questionCount} питань різної складності. Переконайся що:
 - Питання цікаві та зрозумілі для дітей
 - Є різні типи питань
 - Пояснення допомагають учням зрозуміти матеріал
@@ -220,6 +213,35 @@ export default function AITestGenerator({ onClose, onTestGenerated }) {
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* Question Count Selection */}
+          <div>
+            <label style={{ display: 'block', marginBottom: spacing.xs, fontWeight: 'bold', fontSize: fontSize.base }}>
+              Кількість питань *
+            </label>
+            <select
+              value={questionCount}
+              onChange={(e) => setQuestionCount(parseInt(e.target.value))}
+              disabled={generating}
+              style={{
+                width: '100%',
+                padding: spacing.sm,
+                fontSize: fontSize.base,
+                borderRadius: borderRadius.md,
+                border: `2px solid ${colors.gray200}`,
+                cursor: generating ? 'not-allowed' : 'pointer',
+              }}
+            >
+              {[5, 10, 15, 20, 25, 30].map((count) => (
+                <option key={count} value={count}>
+                  {count} питань
+                </option>
+              ))}
+            </select>
+            <div style={{ marginTop: spacing.xs, fontSize: fontSize.sm, color: colors.gray500 }}>
+              Більше питань = довший час генерації
+            </div>
           </div>
 
           {/* Custom Prompt */}

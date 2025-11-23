@@ -7,6 +7,7 @@ import {
   submitTestAttempt,
   resetCurrentTest,
 } from '../../store/slices/testSlice';
+import { addCompletedTest, isTestCompleted } from '../../store/slices/playerSlice';
 
 export default function TakeTest({ onBack, onShowHelp, updateScore }) {
   const dispatch = useDispatch();
@@ -19,6 +20,63 @@ export default function TakeTest({ onBack, onShowHelp, updateScore }) {
   const [showExplanation, setShowExplanation] = useState(false);
   const [isAnswered, setIsAnswered] = useState(false);
   const [testCompleted, setTestCompleted] = useState(false);
+
+  // Timer state
+  const [timeRemaining, setTimeRemaining] = useState(null);
+  const [timerExpired, setTimerExpired] = useState(false);
+
+  // Check if test was already completed
+  const [alreadyCompleted, setAlreadyCompleted] = useState(false);
+
+  useEffect(() => {
+    if (currentTest?.id) {
+      setAlreadyCompleted(isTestCompleted(currentTest.id));
+    }
+  }, [currentTest?.id]);
+
+  // Initialize timer when test starts
+  useEffect(() => {
+    if (currentTest?.timerEnabled && currentTest?.timeLimit && !testCompleted) {
+      setTimeRemaining(currentTest.timeLimit * 60); // Convert minutes to seconds
+    }
+  }, [currentTest, testCompleted]);
+
+  // Timer countdown
+  useEffect(() => {
+    if (!currentTest?.timerEnabled || testCompleted) return;
+
+    const timer = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev === null || prev <= 1) {
+          clearInterval(timer);
+          setTimerExpired(true);
+          // Auto-complete the test
+          dispatch(completeTestAttempt());
+          if (currentAttempt) {
+            dispatch(submitTestAttempt(currentAttempt));
+          }
+          // Mark test as completed in localStorage
+          if (currentTest?.id) {
+            addCompletedTest(currentTest.id);
+          }
+          setTestCompleted(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentTest?.timerEnabled, testCompleted]);
+
+  // Format time for display
+  const formatTime = (seconds) => {
+    if (seconds === null) return '';
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   // Check if live session is completed and force show results
   useEffect(() => {
@@ -52,6 +110,37 @@ export default function TakeTest({ onBack, onShowHelp, updateScore }) {
         <h2>Тест не знайдено</h2>
         <button onClick={onBack} className="btn-primary">
           Назад
+        </button>
+      </div>
+    );
+  }
+
+  // Show message if test was already completed
+  if (alreadyCompleted && !testCompleted) {
+    return (
+      <div style={{ textAlign: 'center', padding: '60px' }}>
+        <div style={{ fontSize: '5em', marginBottom: '20px' }}>✅</div>
+        <h2 style={{ color: '#28a745', marginBottom: '15px' }}>Тест вже пройдено!</h2>
+        <p style={{ color: '#666', fontSize: '1.2em', marginBottom: '30px' }}>
+          Ви вже проходили тест "{currentTest.title}".
+        </p>
+        <p style={{ color: '#888', marginBottom: '30px' }}>
+          Результати збережено. Зверніться до вчителя, якщо потрібно пройти тест знову.
+        </p>
+        <button
+          onClick={onBack}
+          style={{
+            padding: '15px 40px',
+            fontSize: '18px',
+            background: '#667eea',
+            color: 'white',
+            border: 'none',
+            borderRadius: '10px',
+            cursor: 'pointer',
+            fontWeight: 'bold',
+          }}
+        >
+          🏠 На головну
         </button>
       </div>
     );
@@ -112,6 +201,10 @@ export default function TakeTest({ onBack, onShowHelp, updateScore }) {
       if (currentAttempt) {
         dispatch(submitTestAttempt(currentAttempt));
       }
+      // Mark test as completed in localStorage
+      if (currentTest?.id) {
+        addCompletedTest(currentTest.id);
+      }
       setTestCompleted(true);
     }
   };
@@ -130,11 +223,16 @@ export default function TakeTest({ onBack, onShowHelp, updateScore }) {
     return (
       <div style={{ textAlign: 'center', padding: '40px' }}>
         <div style={{ fontSize: '5em', marginBottom: '20px' }}>
-          {isSessionCompleted && !wasFullyCompleted ? '⏱️' : '🎉'}
+          {timerExpired ? '⏱️' : isSessionCompleted && !wasFullyCompleted ? '⏱️' : '🎉'}
         </div>
-        <h1 style={{ color: isSessionCompleted && !wasFullyCompleted ? '#ff9800' : '#28a745', marginBottom: '10px' }}>
-          {isSessionCompleted && !wasFullyCompleted ? 'Сесію завершено!' : 'Тест завершено!'}
+        <h1 style={{ color: timerExpired || (isSessionCompleted && !wasFullyCompleted) ? '#ff9800' : '#28a745', marginBottom: '10px' }}>
+          {timerExpired ? 'Час вичерпано!' : isSessionCompleted && !wasFullyCompleted ? 'Сесію завершено!' : 'Тест завершено!'}
         </h1>
+        {timerExpired && (
+          <p style={{ color: '#856404', marginBottom: '20px', fontSize: '1.1em' }}>
+            Час на виконання тесту закінчився. Ось ваші результати:
+          </p>
+        )}
         <h2 style={{ color: '#333', marginBottom: '10px' }}>{currentTest.title}</h2>
         {isLiveSession && (
           <div
@@ -300,6 +398,29 @@ export default function TakeTest({ onBack, onShowHelp, updateScore }) {
           </p>
         )}
       </div>
+
+      {/* Timer Display */}
+      {currentTest.timerEnabled && timeRemaining !== null && (
+        <div
+          style={{
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            background: timeRemaining <= 60 ? '#dc3545' : timeRemaining <= 180 ? '#ff9800' : '#667eea',
+            color: 'white',
+            padding: '12px 20px',
+            borderRadius: '10px',
+            fontSize: '1.2em',
+            fontWeight: 'bold',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            zIndex: 1000,
+            animation: timeRemaining <= 60 ? 'pulse 1s infinite' : 'none',
+          }}
+        >
+          <i className="fas fa-clock" style={{ marginRight: '8px' }}></i>
+          {formatTime(timeRemaining)}
+        </div>
+      )}
 
       {/* Progress Bar */}
       <div style={{ marginBottom: '30px' }}>
@@ -562,6 +683,14 @@ export default function TakeTest({ onBack, onShowHelp, updateScore }) {
           </div>
         )}
       </div>
+
+      {/* Timer pulse animation */}
+      <style>{`
+        @keyframes pulse {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.8; transform: scale(1.05); }
+        }
+      `}</style>
     </div>
   );
 }

@@ -1,0 +1,285 @@
+.live-sessions-container {
+  background: white;
+  border-radius: 15px;
+  padding: 30px;
+}
+
+.live-sessions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.live-sessions-title {
+  margin: 0;
+  color: #667eea;
+}
+
+.create-session-btn {
+  padding: 12px 24px;
+  border-radius: 10px;
+  border: none;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  font-size: 1.1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.create-session-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.filter-buttons {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  border: 2px solid #ddd;
+  background: white;
+  color: #666;
+  font-weight: normal;
+  cursor: pointer;
+  font-size: 0.95em;
+  transition: all 0.3s;
+}
+
+.filter-btn.active {
+  border-color: #667eea;
+  background: #e7f0ff;
+  color: #667eea;
+  font-weight: bold;
+}
+
+.loading-state {
+  text-align: center;
+  padding: 50px;
+}
+
+.loading-icon {
+  font-size: 2em;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px;
+  background: #f8f9fa;
+  border-radius: 15px;
+}
+
+.empty-icon {
+  font-size: 4em;
+  margin-bottom: 20px;
+}
+
+.empty-title {
+  color: #666;
+  margin-bottom: 10px;
+}
+
+.empty-description {
+  color: #999;
+  margin-bottom: 20px;
+}
+
+.sessions-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.session-card {
+  padding: 20px;
+  border-radius: 12px;
+  border: 2px solid;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.session-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+}
+
+.session-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  margin-bottom: 15px;
+}
+
+.session-title {
+  margin: 0;
+  color: #667eea;
+  font-size: 1.2em;
+  flex: 1;
+}
+
+.status-badge {
+  color: white;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-size: 0.8em;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.session-tags {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.session-tag {
+  padding: 5px 12px;
+  border-radius: 8px;
+  color: white;
+  font-size: 0.9em;
+}
+
+.session-info {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #ddd;
+  color: #666;
+  font-size: 0.9em;
+}
+
+.session-participants {
+  margin-bottom: 5px;
+}
+
+.session-assigned {
+  color: #999;
+  font-size: 0.85em;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .live-sessions-container {
+    padding: 20px;
+  }
+
+  .live-sessions-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+
+  .live-sessions-title {
+    font-size: 1.5em;
+  }
+
+  .create-session-btn {
+    width: 100%;
+    padding: 10px 20px;
+    font-size: 1em;
+  }
+
+  .filter-buttons {
+    width: 100%;
+  }
+
+  .filter-btn {
+    flex: 1;
+    min-width: 120px;
+    text-align: center;
+  }
+
+  .sessions-grid {
+    grid-template-columns: 1fr;
+    gap: 15px;
+  }
+
+  .session-card {
+    padding: 15px;
+  }
+
+  .session-title {
+    font-size: 1.1em;
+  }
+
+  .session-tags {
+    gap: 8px;
+  }
+
+  .session-tag {
+    font-size: 0.85em;
+    padding: 4px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .live-sessions-container {
+    padding: 15px;
+    border-radius: 10px;
+  }
+
+  .live-sessions-title {
+    font-size: 1.3em;
+  }
+
+  .create-session-btn {
+    padding: 10px 16px;
+    font-size: 0.95em;
+  }
+
+  .filter-buttons {
+    gap: 8px;
+  }
+
+  .filter-btn {
+    padding: 6px 12px;
+    font-size: 0.85em;
+    min-width: auto;
+  }
+
+  .empty-state {
+    padding: 40px 20px;
+  }
+
+  .empty-icon {
+    font-size: 3em;
+    margin-bottom: 15px;
+  }
+
+  .session-card {
+    padding: 12px;
+  }
+
+  .session-header {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .status-badge {
+    align-self: flex-start;
+  }
+
+  .session-title {
+    font-size: 1em;
+  }
+
+  .session-tags {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .session-tag {
+    font-size: 0.8em;
+    text-align: center;
+  }
+
+  .session-info {
+    font-size: 0.85em;
+  }
+}

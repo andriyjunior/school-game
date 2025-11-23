@@ -2,8 +2,7 @@ import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from './store/hooks';
 import {
   setPlayerInfo,
-  initializeSession,
-  finalizeSession,
+  clearPlayer,
 } from './store/slices/playerSlice';
 import {
   setCurrentGame,
@@ -41,23 +40,26 @@ function App() {
   const liveSession = useAppSelector((state) => state.liveSession);
   const ui = useAppSelector((state) => state.ui);
 
-  // Create Firebase session when player sets up
+  // Show name modal if player is not logged in (only on initial load)
   useEffect(() => {
-    if (player.name && player.class && !player.sessionId) {
-      dispatch(initializeSession({ playerName: player.name, playerClass: player.class }));
+    if (!player.name || !player.class) {
+      dispatch(setShowNameModal(true));
+    } else {
+      dispatch(setShowNameModal(false));
     }
-  }, [player.name, player.class, player.sessionId, dispatch]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run on mount
 
   // Check for assigned live sessions
   useEffect(() => {
     const checkLiveSessions = async () => {
       if (player.name && player.class) {
         try {
-          await dispatch(fetchAllLiveSessions()).unwrap();
+          const allSessions = await dispatch(fetchAllLiveSessions()).unwrap();
 
           // Find sessions assigned to this player (only ONE session at a time)
           // Priority: Active sessions first, then most recent completed
-          const assignedSessions = liveSession.allLiveSessions.filter((session) => {
+          const assignedSessions = allSessions.filter((session: any) => {
             const isForThisClass = session.playerClass === player.class;
             const isAssigned =
               session.participants.includes('all') ||
@@ -67,7 +69,7 @@ function App() {
           });
 
           // Get the most important session: active first, then most recent completed
-          const activeSessions = assignedSessions.filter(s => s.status === 'active');
+          const activeSessions = assignedSessions.filter((s: any) => s.status === 'active');
           const assignedSession = activeSessions.length > 0
             ? activeSessions[0] // Take first active session
             : assignedSessions[0]; // Or first completed session
@@ -94,7 +96,7 @@ function App() {
     checkLiveSessions();
     const interval = setInterval(checkLiveSessions, 20000); // Check every 20 seconds (reduced from 5s to save database reads)
     return () => clearInterval(interval);
-  }, [player.name, player.class, dispatch, liveSession.allLiveSessions]);
+  }, [player.name, player.class, dispatch]);
 
   // Load custom test if game type is custom-test
   useEffect(() => {
@@ -106,33 +108,6 @@ function App() {
     }
   }, [game.currentGame, liveSession.activeLiveSession?.testId, dispatch]);
 
-  // End session on page unload
-  useEffect(() => {
-    const handleBeforeUnload = async () => {
-      if (player.sessionId) {
-        try {
-          await dispatch(
-            finalizeSession({
-              sessionId: player.sessionId,
-              stats: {
-                totalScore: game.totalScore,
-                maxStreak: game.maxStreak,
-                achievements: game.achievements,
-              },
-            })
-          );
-        } catch (error) {
-          console.error('Failed to end session:', error);
-        }
-      }
-    };
-
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-      handleBeforeUnload();
-    };
-  }, [player.sessionId, game.totalScore, game.maxStreak, game.achievements, dispatch]);
 
   // Handle player setup
   const handlePlayerSetup = (name: string, classNumber: PlayerClass) => {
@@ -251,8 +226,28 @@ function App() {
       <div className="container">
         {/* Player Welcome */}
         {player.name && !ui.showNameModal && (
-          <div className="player-welcome">
-            <i className="fas fa-user"></i> {player.name} • {player.class} клас
+          <div className="player-welcome" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span>
+              <i className="fas fa-user"></i> {player.name} • {player.class} клас
+            </span>
+            <button
+              onClick={() => {
+                if (confirm('Вийти з акаунту? Ваші результати збережені.')) {
+                  dispatch(clearPlayer());
+                  dispatch(setShowNameModal(true));
+                }
+              }}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#999',
+                cursor: 'pointer',
+                fontSize: '12px',
+                padding: '4px 8px',
+              }}
+            >
+              <i className="fas fa-sign-out-alt"></i> Вийти
+            </button>
           </div>
         )}
 

@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchAllTests, deleteExistingTest } from '../../store/slices/testSlice';
 import TestCreator from './TestCreator';
 import AITestGenerator from './AITestGenerator';
+import './TestList.css';
 
 export default function TestList() {
   const dispatch = useDispatch();
@@ -54,45 +55,20 @@ export default function TestList() {
     : allTests;
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div className="test-list-container">
       {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '20px',
-        }}
-      >
-        <h2 style={{ color: '#667eea', margin: 0 }}>📝 Власні Тести ({filteredTests.length})</h2>
-        <div style={{ display: 'flex', gap: '12px' }}>
+      <div className="test-list-header">
+        <h2 className="test-list-title">📝 Власні Тести ({filteredTests.length})</h2>
+        <div className="header-buttons">
           <button
             onClick={() => setShowAIGenerator(true)}
-            style={{
-              padding: '12px 24px',
-              fontSize: '16px',
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-            }}
+            className="ai-generator-btn"
           >
             🤖 Створити тест за допомогою ChatGPT
           </button>
           <button
             onClick={() => setShowCreator(true)}
-            style={{
-              padding: '12px 24px',
-              fontSize: '16px',
-              background: '#28a745',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-            }}
+            className="create-test-btn"
           >
             ➕ Створити новий тест
           </button>
@@ -100,46 +76,23 @@ export default function TestList() {
       </div>
 
       {/* Filter */}
-      <div style={{ marginBottom: '20px' }}>
-        <label style={{ marginRight: '10px', fontWeight: 'bold' }}>Фільтр за класом:</label>
+      <div className="test-filter">
+        <label className="filter-label">Фільтр за класом:</label>
         <button
           onClick={() => setFilterClass(null)}
-          style={{
-            padding: '8px 16px',
-            marginRight: '10px',
-            background: filterClass === null ? '#667eea' : '#e0e0e0',
-            color: filterClass === null ? 'white' : '#333',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-          }}
+          className={`filter-class-btn ${filterClass === null ? 'active' : ''}`}
         >
           Всі
         </button>
         <button
           onClick={() => setFilterClass(2)}
-          style={{
-            padding: '8px 16px',
-            marginRight: '10px',
-            background: filterClass === 2 ? '#667eea' : '#e0e0e0',
-            color: filterClass === 2 ? 'white' : '#333',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-          }}
+          className={`filter-class-btn ${filterClass === 2 ? 'active' : ''}`}
         >
           2 клас
         </button>
         <button
           onClick={() => setFilterClass(4)}
-          style={{
-            padding: '8px 16px',
-            background: filterClass === 4 ? '#667eea' : '#e0e0e0',
-            color: filterClass === 4 ? 'white' : '#333',
-            border: 'none',
-            borderRadius: '5px',
-            cursor: 'pointer',
-          }}
+          className={`filter-class-btn ${filterClass === 4 ? 'active' : ''}`}
         >
           4 клас
         </button>
@@ -147,76 +100,44 @@ export default function TestList() {
 
       {/* Loading State */}
       {loading && (
-        <div style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+        <div className="test-loading">
           Завантаження тестів...
         </div>
       )}
 
       {/* Empty State */}
       {!loading && filteredTests.length === 0 && (
-        <div
-          style={{
-            textAlign: 'center',
-            padding: '60px',
-            background: '#f8f9fa',
-            borderRadius: '12px',
-          }}
-        >
-          <div style={{ fontSize: '4em', marginBottom: '20px' }}>📝</div>
-          <h3 style={{ color: '#666' }}>Ще немає тестів</h3>
-          <p style={{ color: '#999' }}>Створіть свій перший тест, натиснувши кнопку вгорі</p>
+        <div className="test-empty-state">
+          <div className="empty-icon">📝</div>
+          <h3 className="empty-title">Ще немає тестів</h3>
+          <p className="empty-description">Створіть свій перший тест, натиснувши кнопку вгорі</p>
         </div>
       )}
 
       {/* Tests Grid */}
       {!loading && filteredTests.length > 0 && (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))',
-            gap: '20px',
-          }}
-        >
+        <div className="tests-grid">
           {filteredTests.map((test) => (
             <div
               key={test.id}
-              style={{
-                background: 'white',
-                border: test.isActive ? '2px solid #28a745' : '2px solid #ddd',
-                borderRadius: '12px',
-                padding: '20px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                position: 'relative',
-              }}
+              className={`test-card ${test.isActive ? 'active' : ''}`}
             >
               {/* Status Badge */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '10px',
-                  right: '10px',
-                  padding: '4px 12px',
-                  background: test.isActive ? '#28a745' : '#6c757d',
-                  color: 'white',
-                  fontSize: '12px',
-                  borderRadius: '12px',
-                  fontWeight: 'bold',
-                }}
-              >
+              <div className={`status-badge ${test.isActive ? 'active' : 'inactive'}`}>
                 {test.isActive ? '✅ Активний' : '⏸️ Неактивний'}
               </div>
 
               {/* Test Info */}
-              <div style={{ marginBottom: '15px' }}>
-                <h3 style={{ color: '#333', marginBottom: '8px', paddingRight: '100px' }}>
+              <div className="test-info">
+                <h3 className="test-title">
                   {test.title}
                 </h3>
                 {test.description && (
-                  <p style={{ color: '#666', fontSize: '14px', marginBottom: '8px' }}>
+                  <p className="test-description">
                     {test.description}
                   </p>
                 )}
-                <div style={{ fontSize: '13px', color: '#888' }}>
+                <div className="test-meta">
                   <div>👤 Автор: {test.createdBy}</div>
                   <div>
                     🎓 Клас: {test.playerClass}
@@ -234,33 +155,20 @@ export default function TestList() {
               </div>
 
               {/* Questions Preview */}
-              <details style={{ marginBottom: '15px' }}>
-                <summary
-                  style={{
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                    color: '#667eea',
-                    marginBottom: '10px',
-                  }}
-                >
+              <details className="test-questions-preview">
+                <summary className="questions-summary">
                   🔍 Переглянути питання
                 </summary>
-                <div style={{ paddingLeft: '15px', maxHeight: '200px', overflowY: 'auto' }}>
+                <div className="questions-list">
                   {test.questions.map((q, index) => (
                     <div
                       key={q.id}
-                      style={{
-                        padding: '8px',
-                        marginBottom: '8px',
-                        background: '#f8f9fa',
-                        borderRadius: '5px',
-                        fontSize: '13px',
-                      }}
+                      className="question-item"
                     >
-                      <div style={{ fontWeight: 'bold', color: '#333' }}>
+                      <div className="question-text">
                         {index + 1}. {q.question}
                       </div>
-                      <div style={{ color: '#666', marginTop: '3px' }}>
+                      <div className="question-meta">
                         Тип:{' '}
                         {q.type === 'multiple-choice'
                           ? 'Вибір'
@@ -276,34 +184,16 @@ export default function TestList() {
               </details>
 
               {/* Actions */}
-              <div style={{ display: 'flex', gap: '10px' }}>
+              <div className="test-actions">
                 <button
                   onClick={() => handleEdit(test)}
-                  style={{
-                    flex: 1,
-                    padding: '10px',
-                    background: '#667eea',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                  }}
+                  className="edit-btn"
                 >
                   ✏️ Редагувати
                 </button>
                 <button
                   onClick={() => handleDelete(test.id, test.title)}
-                  style={{
-                    flex: 1,
-                    padding: '10px',
-                    background: '#dc3545',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                  }}
+                  className="delete-btn"
                 >
                   🗑️ Видалити
                 </button>

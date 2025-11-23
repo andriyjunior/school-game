@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { createNewTest, updateExistingTest } from '../../store/slices/testSlice';
+import { auth } from '../../firebase/config';
 import { Modal, ModalHeader, ModalBody, ModalFooter, Input, Textarea, Button, Card, Alert, ErrorAlert, SuccessAlert } from '../common';
 import { colors, spacing, fontSize, borderRadius, gap } from '../../styles/tokens';
 
@@ -15,6 +16,17 @@ export default function TestCreator({ existingTest, onClose, onSuccess }) {
   const [playerClass, setPlayerClass] = useState(existingTest?.playerClass || 1);
   const [createdBy, setCreatedBy] = useState(existingTest?.createdBy || '');
   const [isActive, setIsActive] = useState(existingTest?.isActive ?? true);
+
+  // Timer settings
+  const [timerEnabled, setTimerEnabled] = useState(existingTest?.timerEnabled ?? false);
+  const [timeLimit, setTimeLimit] = useState(existingTest?.timeLimit || 15);
+
+  // Auto-fill author from current user
+  useEffect(() => {
+    if (!existingTest && auth.currentUser) {
+      setCreatedBy(auth.currentUser.email || auth.currentUser.displayName || '');
+    }
+  }, [existingTest]);
 
   // Questions
   const [questions, setQuestions] = useState(existingTest?.questions || []);
@@ -141,6 +153,8 @@ export default function TestCreator({ existingTest, onClose, onSuccess }) {
       totalPoints,
       createdBy,
       isActive,
+      timerEnabled,
+      timeLimit: timerEnabled ? parseInt(timeLimit) : null,
     };
 
     setSaving(true);
@@ -247,7 +261,7 @@ export default function TestCreator({ existingTest, onClose, onSuccess }) {
             </div>
           </div>
 
-          <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+          <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', marginBottom: spacing.md }}>
             <input
               type="checkbox"
               checked={isActive}
@@ -256,6 +270,60 @@ export default function TestCreator({ existingTest, onClose, onSuccess }) {
             />
             <span style={{ fontSize: fontSize.base }}>Активний (може бути призначений до сесій)</span>
           </label>
+
+          {/* Timer Settings */}
+          <div style={{
+            padding: spacing.md,
+            background: timerEnabled ? colors.warningBg : colors.gray100,
+            borderRadius: borderRadius.md,
+            border: timerEnabled ? `2px solid ${colors.warning}` : `2px solid ${colors.gray200}`
+          }}>
+            <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer', marginBottom: timerEnabled ? spacing.sm : 0 }}>
+              <input
+                type="checkbox"
+                checked={timerEnabled}
+                onChange={(e) => setTimerEnabled(e.target.checked)}
+                style={{ marginRight: spacing.xs, width: '18px', height: '18px', cursor: 'pointer' }}
+              />
+              <span style={{ fontSize: fontSize.base, fontWeight: 'bold' }}>
+                <i className="fas fa-clock" style={{ marginRight: spacing.xs }}></i>
+                Увімкнути таймер
+              </span>
+            </label>
+
+            {timerEnabled && (
+              <div style={{ marginTop: spacing.sm }}>
+                <label style={{ display: 'block', marginBottom: spacing.xs, fontSize: fontSize.sm, color: colors.gray600 }}>
+                  Час на виконання тесту (хвилини)
+                </label>
+                <select
+                  value={timeLimit}
+                  onChange={(e) => setTimeLimit(parseInt(e.target.value))}
+                  style={{
+                    width: '100%',
+                    padding: spacing.sm,
+                    fontSize: fontSize.base,
+                    borderRadius: borderRadius.md,
+                    border: `2px solid ${colors.warning}`,
+                    background: colors.white,
+                  }}
+                >
+                  <option value={5}>5 хвилин</option>
+                  <option value={10}>10 хвилин</option>
+                  <option value={15}>15 хвилин</option>
+                  <option value={20}>20 хвилин</option>
+                  <option value={30}>30 хвилин</option>
+                  <option value={45}>45 хвилин</option>
+                  <option value={60}>60 хвилин (1 година)</option>
+                  <option value={90}>90 хвилин</option>
+                </select>
+                <small style={{ display: 'block', marginTop: spacing.xs, color: colors.gray500, fontSize: fontSize.sm }}>
+                  <i className="fas fa-info-circle" style={{ marginRight: spacing.xs }}></i>
+                  Тест автоматично завершиться, коли час вичерпається
+                </small>
+              </div>
+            )}
+          </div>
         </Card>
 
         {/* Add/Edit Question */}

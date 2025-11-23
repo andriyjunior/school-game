@@ -8,11 +8,6 @@ interface Task {
   correct: number[];
 }
 
-interface TaskHistory {
-  correct: boolean;
-  points: number;
-}
-
 interface AlgorithmGameProps {
   onBack: () => void;
   onShowHelp: (gameType: GameType) => void;
