@@ -1,0 +1,341 @@
+import { useState, useEffect } from 'react';
+import { GameType, GameDetails } from '../../../types';
+import {
+  GameHeader,
+  ScoreDisplay,
+  CelebrationOverlay,
+  FeedbackSection
+} from '../../game-ui';
+import { useAIMessages } from '../../../hooks/useAIMessages';
+
+interface BugHunterGameProps {
+  onBack: () => void;
+  onShowHelp: (gameType: GameType) => void;
+  updateScore: (points: number, gameDetails?: GameDetails) => Promise<void>;
+}
+
+interface BugChallenge {
+  question: string;
+  sequence: string[];
+  bugIndex: number;
+  correctItem: string;
+  explanation: string;
+  category: string;
+}
+
+const BUG_LIBRARY: BugChallenge[] = [
+  {
+    question: "Знайди помилку в числах!",
+    sequence: ["1", "2", "4", "4", "5"],
+    bugIndex: 2,
+    correctItem: "3",
+    explanation: "Числа йдуть по порядку: 1, 2, 3, 4, 5. Третє число має бути 3!",
+    category: "numbers"
+  },
+  {
+    question: "Яке число неправильне?",
+    sequence: ["2", "4", "6", "9", "10"],
+    bugIndex: 3,
+    correctItem: "8",
+    explanation: "Рахуємо двійками: 2, 4, 6, 8, 10. Четверте число має бути 8!",
+    category: "numbers"
+  },
+  {
+    question: "Знайди баг у послідовності!",
+    sequence: ["10", "9", "8", "6", "6"],
+    bugIndex: 3,
+    correctItem: "7",
+    explanation: "Числа зменшуються: 10, 9, 8, 7, 6. Четверте число має бути 7!",
+    category: "numbers"
+  },
+  {
+    question: "Яка буква зайва?",
+    sequence: ["А", "Б", "В", "Д", "Ґ"],
+    bugIndex: 3,
+    correctItem: "Г",
+    explanation: "Букви йдуть по порядку: А, Б, В, Г, Ґ. Четверта буква має бути Г!",
+    category: "alphabet"
+  },
+  {
+    question: "Знайди помилку в алфавіті!",
+    sequence: ["К", "Л", "Н", "Н", "О"],
+    bugIndex: 2,
+    correctItem: "М",
+    explanation: "По порядку: К, Л, М, Н, О. Третя буква має бути М!",
+    category: "alphabet"
+  },
+  {
+    question: "Яка фігура порушує візерунок?",
+    sequence: ["🔴", "🔵", "🔴", "🔴", "🔴"],
+    bugIndex: 3,
+    correctItem: "🔵",
+    explanation: "Червоний і синій чергуються. Четверта має бути 🔵!",
+    category: "colors"
+  },
+  {
+    question: "Знайди зайву фігуру!",
+    sequence: ["🟡", "🟡", "🟢", "🟡", "🟡", "🟡"],
+    bugIndex: 5,
+    correctItem: "🟢",
+    explanation: "Два жовтих, потім зелений. Шоста має бути 🟢!",
+    category: "colors"
+  },
+  {
+    question: "Яка фігура неправильна?",
+    sequence: ["⬛", "⬜", "⬛", "⬛", "⬛"],
+    bugIndex: 3,
+    correctItem: "⬜",
+    explanation: "Чорний і білий чергуються. Четверта має бути ⬜!",
+    category: "shapes"
+  },
+  {
+    question: "Знайди помилку!",
+    sequence: ["🔺", "🔻", "🔺", "🔻", "🔻"],
+    bugIndex: 4,
+    correctItem: "🔺",
+    explanation: "Трикутники чергуються вгору-вниз. П'ятий має бути 🔺!",
+    category: "shapes"
+  },
+  {
+    question: "Яка тваринка зайва?",
+    sequence: ["🐱", "🐶", "🐱", "🐱", "🐱"],
+    bugIndex: 3,
+    correctItem: "🐶",
+    explanation: "Котик і песик чергуються. Четверта має бути 🐶!",
+    category: "emoji"
+  },
+  {
+    question: "Знайди помилку в їжі!",
+    sequence: ["🍎", "🍊", "🍋", "🍎", "🍎", "🍋"],
+    bugIndex: 4,
+    correctItem: "🍊",
+    explanation: "Яблуко, апельсин, лимон повторюються. П'ята має бути 🍊!",
+    category: "emoji"
+  },
+  {
+    question: "Яка погода неправильна?",
+    sequence: ["☀️", "⛅", "☁️", "☀️", "⛅", "⛅"],
+    bugIndex: 5,
+    correctItem: "☁️",
+    explanation: "Сонце, хмаринка, хмара повторюються. Шоста має бути ☁️!",
+    category: "emoji"
+  },
+  {
+    question: "Що не так у розпорядку дня?",
+    sequence: ["🌅", "☀️", "🌙", "🌅", "☀️", "☀️"],
+    bugIndex: 5,
+    correctItem: "🌙",
+    explanation: "Ранок, день, вечір повторюються. Шостий має бути 🌙!",
+    category: "daily"
+  },
+  {
+    question: "Знайди помилку в рості!",
+    sequence: ["🌱", "🌿", "🌳", "🌱", "🌱", "🌳"],
+    bugIndex: 4,
+    correctItem: "🌿",
+    explanation: "Паросток, листочки, дерево. П'ятий має бути 🌿!",
+    category: "growing"
+  }
+];
+
+export default function BugHunterGame({ onBack, onShowHelp, updateScore }: BugHunterGameProps) {
+  const [currentChallenge, setCurrentChallenge] = useState<BugChallenge | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [score, setScore] = useState(0);
+  const [streak, setStreak] = useState(0);
+  const [bugsFound, setBugsFound] = useState(0);
+  const [showCelebration, setShowCelebration] = useState(false);
+  const { triggerMotivationalToast } = useAIMessages();
+
+  useEffect(() => {
+    loadNewChallenge();
+  }, []);
+
+  const loadNewChallenge = () => {
+    const randomChallenge = BUG_LIBRARY[Math.floor(Math.random() * BUG_LIBRARY.length)];
+    setCurrentChallenge(randomChallenge);
+    setSelectedIndex(null);
+    setShowFeedback(false);
+    setIsCorrect(null);
+  };
+
+  const handleSelect = (index: number) => {
+    if (showFeedback || !currentChallenge) return;
+
+    setSelectedIndex(index);
+    const correct = index === currentChallenge.bugIndex;
+    setIsCorrect(correct);
+    setShowFeedback(true);
+
+    if (correct) {
+      const basePoints = 100;
+      const streakBonus = streak * 10;
+      const totalPoints = basePoints + streakBonus;
+
+      setScore(prev => prev + totalPoints);
+      setStreak(prev => prev + 1);
+      setBugsFound(prev => prev + 1);
+
+      updateScore(totalPoints, {
+        gameType: 'bug-hunter',
+        points: totalPoints,
+        correct: true
+      });
+
+      // Trigger motivational toast occasionally
+      triggerMotivationalToast();
+
+      if ((bugsFound + 1) % 5 === 0) {
+        setShowCelebration(true);
+        setTimeout(() => setShowCelebration(false), 2000);
+      }
+    } else {
+      setStreak(0);
+    }
+  };
+
+  if (!currentChallenge) {
+    return <div>Loading...</div>;
+  }
+
+  return (
+    <div className="bug-hunter-game">
+      <GameHeader onBack={onBack} onShowHelp={onShowHelp} gameType="bug-hunter" />
+
+      <ScoreDisplay
+        score={score}
+        streak={streak}
+        tasksCompleted={bugsFound}
+        gradient="linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)"
+        extraStats={[{ label: 'Знайдено', value: `🐛 ${bugsFound}` }]}
+        floating
+      />
+
+      <CelebrationOverlay show={showCelebration} emojis="🎉 🐛 🌟" />
+
+      {/* Title */}
+      <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+        <div style={{ fontSize: '3em', marginBottom: '10px' }}>🔍🐛</div>
+        <h2 style={{
+          color: '#667eea',
+          fontSize: '1.8em',
+          marginBottom: '10px'
+        }}>
+          {currentChallenge.question}
+        </h2>
+        <p style={{ color: '#666', fontSize: '1.1em' }}>
+          Натисни на елемент з помилкою!
+        </p>
+      </div>
+
+      {/* Sequence */}
+      <div style={{
+        background: '#f8f9fa',
+        borderRadius: '15px',
+        padding: '20px',
+        marginBottom: '20px',
+        width: '100%'
+      }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '15px'
+        }}>
+          {currentChallenge.sequence.map((item, index) => (
+            <button
+              key={index}
+              onClick={() => handleSelect(index)}
+              disabled={showFeedback}
+              style={{
+                width: '70px',
+                height: '70px',
+                borderRadius: '15px',
+                border: showFeedback
+                  ? index === currentChallenge.bugIndex
+                    ? '4px solid #dc3545'
+                    : index === selectedIndex
+                      ? '4px solid #ffc107'
+                      : '3px solid #e0e0e0'
+                  : selectedIndex === index
+                    ? '4px solid #667eea'
+                    : '3px solid #e0e0e0',
+                background: showFeedback
+                  ? index === currentChallenge.bugIndex
+                    ? '#ffebee'
+                    : 'white'
+                  : 'white',
+                cursor: showFeedback ? 'default' : 'pointer',
+                fontSize: '2em',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                transition: 'all 0.3s',
+                boxShadow: selectedIndex === index && !showFeedback
+                  ? '0 5px 20px rgba(102, 126, 234, 0.4)'
+                  : '0 3px 10px rgba(0,0,0,0.1)',
+                transform: selectedIndex === index && !showFeedback
+                  ? 'scale(1.1)'
+                  : 'scale(1)'
+              }}
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+
+        {/* Position numbers */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'center',
+          gap: '15px',
+          marginTop: '10px'
+        }}>
+          {currentChallenge.sequence.map((_, index) => (
+            <div
+              key={index}
+              style={{
+                width: '70px',
+                textAlign: 'center',
+                fontSize: '0.9em',
+                color: showFeedback && index === currentChallenge.bugIndex
+                  ? '#dc3545'
+                  : '#999',
+                fontWeight: showFeedback && index === currentChallenge.bugIndex
+                  ? 'bold'
+                  : 'normal'
+              }}
+            >
+              {index + 1}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Feedback */}
+      {showFeedback && (
+        <FeedbackSection
+          isCorrect={isCorrect!}
+          points={100 + (streak - 1) * 10}
+          streak={streak}
+          explanation={currentChallenge.explanation}
+          onNext={loadNewChallenge}
+          nextButtonText="➡️ Шукати наступний баг"
+        >
+          <div style={{
+            background: 'white',
+            borderRadius: '10px',
+            padding: '10px',
+            fontSize: '1.3em',
+            marginBottom: '15px'
+          }}>
+            Правильно: <strong>{currentChallenge.correctItem}</strong> (позиція {currentChallenge.bugIndex + 1})
+          </div>
+        </FeedbackSection>
+      )}
+    </div>
+  );
+}

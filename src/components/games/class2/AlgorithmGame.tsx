@@ -1,7 +1,13 @@
 import { useState, useEffect } from 'react';
 import { GameType, GameDetails } from '../../../types';
+import {
+  GameHeader,
+  ScoreDisplay,
+  CelebrationOverlay,
+  ActionButton
+} from '../../game-ui';
+import { useAIMessages } from '../../../hooks/useAIMessages';
 
-// Types
 interface Task {
   question: string;
   steps: string[];
@@ -14,7 +20,6 @@ interface AlgorithmGameProps {
   updateScore: (points: number, gameDetails?: GameDetails) => Promise<void>;
 }
 
-// Large task library with different categories
 const TASK_LIBRARY: Record<string, Task[]> = {
   daily: [
     {
@@ -180,7 +185,6 @@ const TASK_LIBRARY: Record<string, Task[]> = {
   ]
 };
 
-// Flatten all tasks into one array
 const ALL_TASKS = Object.values(TASK_LIBRARY).flat();
 
 export default function AlgorithmGame({ onBack, onShowHelp, updateScore }: AlgorithmGameProps) {
@@ -196,16 +200,14 @@ export default function AlgorithmGame({ onBack, onShowHelp, updateScore }: Algor
   const [stars, setStars] = useState<number>(0);
   const [showCelebration, setShowCelebration] = useState<boolean>(false);
 
-  // Initialize first task
+  const { triggerMotivationalToast } = useAIMessages();
+
   useEffect(() => {
     loadNewTask();
   }, []);
 
   const loadNewTask = () => {
-    // Get random task from library
     const randomTask = ALL_TASKS[Math.floor(Math.random() * ALL_TASKS.length)];
-
-    // Shuffle the steps
     const shuffled = [...randomTask.steps].sort(() => Math.random() - 0.5);
 
     setCurrentTask(randomTask);
@@ -219,7 +221,6 @@ export default function AlgorithmGame({ onBack, onShowHelp, updateScore }: Algor
   const handleStepClick = (step: string, index: number) => {
     if (!currentTask) return;
 
-    // Add step to user's order
     const newUserOrder = [...userOrder, step];
     const newSelectedSteps = [...selectedSteps, index];
     const newAvailable = availableSteps.filter((_, i) => i !== index);
@@ -228,7 +229,6 @@ export default function AlgorithmGame({ onBack, onShowHelp, updateScore }: Algor
     setSelectedSteps(newSelectedSteps);
     setAvailableSteps(newAvailable);
 
-    // Check if all steps are selected
     if (newUserOrder.length === currentTask.steps.length) {
       checkAnswer(newUserOrder);
     }
@@ -254,7 +254,6 @@ export default function AlgorithmGame({ onBack, onShowHelp, updateScore }: Algor
     setShowFeedback(true);
 
     if (isAnswerCorrect) {
-      // Calculate points based on streak
       const basePoints = 100;
       const streakBonus = streak * 10;
       const totalPoints = basePoints + streakBonus;
@@ -264,14 +263,14 @@ export default function AlgorithmGame({ onBack, onShowHelp, updateScore }: Algor
       setTasksCompleted(prev => prev + 1);
       setStars(prev => prev + 1);
 
-      // Update Redux score
       updateScore(totalPoints, {
         gameType: 'algorithm-game',
         points: totalPoints,
         correct: true
       });
 
-      // Show celebration for milestones
+      triggerMotivationalToast();
+
       if ((tasksCompleted + 1) % 5 === 0) {
         setShowCelebration(true);
         setTimeout(() => setShowCelebration(false), 2000);
@@ -281,78 +280,24 @@ export default function AlgorithmGame({ onBack, onShowHelp, updateScore }: Algor
     }
   };
 
-  const handleNext = () => {
-    loadNewTask();
-  };
-
   if (!currentTask) {
     return <div>Loading...</div>;
   }
 
   return (
     <div className="algorithm-game">
-      {/* Game Header */}
-      <div className="game-header">
-        <button className="back-btn" onClick={onBack}>
-          ← Назад
-        </button>
-        <button className="help-btn" onClick={() => onShowHelp('algorithm-game')}>
-          ❓ Допомога
-        </button>
-      </div>
+      <GameHeader onBack={onBack} onShowHelp={onShowHelp} gameType="algorithm-game" />
 
-      {/* Score Display */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'space-around',
-        alignItems: 'center',
-        padding: '15px',
-        background: 'linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)',
-        borderRadius: '15px',
-        marginBottom: '20px',
-        flexWrap: 'wrap',
-        gap: '10px'
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '0.9em', color: '#666' }}>Бали</div>
-          <div style={{ fontSize: '1.8em', fontWeight: 'bold', color: '#f5576c' }}>
-            {score}
-          </div>
-        </div>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '0.9em', color: '#666' }}>Серія</div>
-          <div style={{ fontSize: '1.8em', fontWeight: 'bold', color: '#4facfe' }}>
-            🔥 {streak}
-          </div>
-        </div>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '0.9em', color: '#666' }}>Завдань</div>
-          <div style={{ fontSize: '1.8em', fontWeight: 'bold', color: '#43e97b' }}>
-            ✅ {tasksCompleted}
-          </div>
-        </div>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '0.9em', color: '#666' }}>Зірки</div>
-          <div style={{ fontSize: '1.8em', fontWeight: 'bold', color: '#ffd700' }}>
-            ⭐ {stars}
-          </div>
-        </div>
-      </div>
+      <ScoreDisplay
+        score={score}
+        streak={streak}
+        tasksCompleted={tasksCompleted}
+        gradient="linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)"
+        extraStats={[{ label: 'Зірки', value: `⭐ ${stars}` }]}
+        floating
+      />
 
-      {/* Celebration */}
-      {showCelebration && (
-        <div style={{
-          position: 'fixed',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          fontSize: '5em',
-          animation: 'pulse 1s ease-in-out',
-          zIndex: 1000
-        }}>
-          🎉 🎊 🌟
-        </div>
-      )}
+      <CelebrationOverlay show={showCelebration} />
 
       {/* Question */}
       <h2 style={{
@@ -380,7 +325,8 @@ export default function AlgorithmGame({ onBack, onShowHelp, updateScore }: Algor
         borderRadius: '15px',
         padding: '20px',
         marginBottom: '20px',
-        minHeight: '120px'
+        minHeight: '120px',
+        width: '100%'
       }}>
         <h3 style={{ color: '#667eea', marginBottom: '15px', fontSize: '1.2em' }}>
           📋 Твоя послідовність:
@@ -420,8 +366,7 @@ export default function AlgorithmGame({ onBack, onShowHelp, updateScore }: Algor
                   display: 'flex',
                   alignItems: 'center',
                   gap: '15px',
-                  transition: 'all 0.3s',
-                  transform: showFeedback && isCorrect ? 'scale(1.02)' : 'scale(1)'
+                  transition: 'all 0.3s'
                 }}
               >
                 <div style={{
@@ -475,16 +420,6 @@ export default function AlgorithmGame({ onBack, onShowHelp, updateScore }: Algor
                   transition: 'all 0.3s',
                   boxShadow: '0 3px 10px rgba(0,0,0,0.15)'
                 }}
-                onMouseEnter={(e) => {
-                  const target = e.currentTarget as HTMLButtonElement;
-                  target.style.transform = 'translateY(-3px) scale(1.05)';
-                  target.style.boxShadow = '0 6px 20px rgba(0,0,0,0.25)';
-                }}
-                onMouseLeave={(e) => {
-                  const target = e.currentTarget as HTMLButtonElement;
-                  target.style.transform = 'translateY(0) scale(1)';
-                  target.style.boxShadow = '0 3px 10px rgba(0,0,0,0.15)';
-                }}
               >
                 {step}
               </button>
@@ -495,10 +430,7 @@ export default function AlgorithmGame({ onBack, onShowHelp, updateScore }: Algor
 
       {/* Feedback */}
       {showFeedback && (
-        <div style={{
-          textAlign: 'center',
-          marginTop: '20px'
-        }}>
+        <div style={{ textAlign: 'center', marginTop: '20px' }}>
           <div style={{
             fontSize: '4em',
             marginBottom: '15px',
@@ -515,7 +447,6 @@ export default function AlgorithmGame({ onBack, onShowHelp, updateScore }: Algor
             {isCorrect ? 'Чудово!' : 'Спробуй ще раз!'}
           </div>
 
-          {/* Points display for correct answer */}
           {isCorrect && (
             <div style={{
               fontSize: '1.3em',
@@ -578,12 +509,6 @@ export default function AlgorithmGame({ onBack, onShowHelp, updateScore }: Algor
                     {index + 1}
                   </div>
                   <div style={{ flex: 1, color: '#333' }}>{step}</div>
-                  {!isCorrect && userOrder[index] === step && (
-                    <div style={{ color: '#28a745', fontSize: '1.2em' }}>✓</div>
-                  )}
-                  {!isCorrect && userOrder[index] !== step && (
-                    <div style={{ color: '#dc3545', fontSize: '1.2em' }}>✗</div>
-                  )}
                 </div>
               ))}
             </div>
@@ -601,23 +526,10 @@ export default function AlgorithmGame({ onBack, onShowHelp, updateScore }: Algor
               </div>
             )}
           </div>
-          <button
-            onClick={handleNext}
-            style={{
-              background: 'linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)',
-              color: 'white',
-              border: 'none',
-              padding: '15px 40px',
-              fontSize: '1.5em',
-              borderRadius: '15px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-              marginTop: '10px',
-              boxShadow: '0 5px 15px rgba(0,0,0,0.2)'
-            }}
-          >
+
+          <ActionButton onClick={loadNewTask} variant="success">
             {isCorrect ? '➡️ Наступне завдання' : '🔄 Спробувати знову'}
-          </button>
+          </ActionButton>
         </div>
       )}
     </div>

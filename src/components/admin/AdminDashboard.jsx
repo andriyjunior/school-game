@@ -4,6 +4,7 @@ import { auth } from '../../firebase/config';
 import { getAnalytics, getAllSessions, getPlayerStats } from '../../firebase/database';
 import LiveSessions from './LiveSessions';
 import TestList from './TestList';
+import AdminSettings from './AdminSettings';
 import './AdminDashboard.css';
 
 function AdminDashboard() {
@@ -163,6 +164,12 @@ function AdminDashboard() {
         >
           📝 Тести
         </button>
+        <button
+          className={view === 'settings' ? 'active' : ''}
+          onClick={() => setView('settings')}
+        >
+          ⚙️ Налаштування
+        </button>
       </nav>
 
       {/* Content */}
@@ -196,6 +203,10 @@ function AdminDashboard() {
 
         {view === 'tests' && (
           <TestList />
+        )}
+
+        {view === 'settings' && (
+          <AdminSettings />
         )}
       </div>
     </div>

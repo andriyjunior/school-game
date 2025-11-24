@@ -5,6 +5,19 @@
     box-sizing: border-box;
 }
 
+/* Twemoji fallback for old Windows */
+img.emoji,
+.emoji {
+    height: 1em !important;
+    width: 1em !important;
+    max-height: 48px !important;
+    max-width: 48px !important;
+    margin: 0 0.025em !important;
+    vertical-align: -0.1em !important;
+    display: inline-block !important;
+    background: red;
+}
+
 body {
     font-family: 'Comic Sans MS', 'Arial', sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);

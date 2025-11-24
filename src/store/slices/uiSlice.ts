@@ -5,6 +5,7 @@ const initialState: UIState = {
   showNameModal: true,
   showHelp: false,
   helpGameType: '',
+  toastMessage: null,
 };
 
 const uiSlice = createSlice({
@@ -28,6 +29,12 @@ const uiSlice = createSlice({
       state.showHelp = false;
       state.helpGameType = '';
     },
+    showToast: (state, action: PayloadAction<string>) => {
+      state.toastMessage = action.payload;
+    },
+    hideToast: (state) => {
+      state.toastMessage = null;
+    },
   },
 });
 
@@ -37,6 +44,8 @@ export const {
   setHelpGameType,
   openHelp,
   closeHelp,
+  showToast,
+  hideToast,
 } = uiSlice.actions;
 
 export default uiSlice.reducer;

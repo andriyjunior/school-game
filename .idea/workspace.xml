@@ -5,16 +5,17 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c6fa7eb2-e1c2-417b-bd46-09ff788c3a69" name="Changes" comment="works">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/css/styles.css" beforeDir="false" afterPath="$PROJECT_DIR$/css/styles.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/App.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/App.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/App.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/admin/AITestGenerator.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/admin/AITestGenerator.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/admin/AdminDashboard.css" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/admin/AdminDashboard.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/admin/LiveSessions.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/admin/LiveSessions.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/admin/TestCreator.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/admin/TestCreator.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/admin/TestList.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/admin/TestList.jsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/games/TakeTest.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/games/TakeTest.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/MainMenu.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/MainMenu.jsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/admin/AdminDashboard.jsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/admin/AdminDashboard.jsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/games/class2/AlgorithmGame.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/games/class2/AlgorithmGame.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/store/slices/playerSlice.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/store/slices/playerSlice.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/data/helpContent.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/data/helpContent.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/firebase/database.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/firebase/database.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/store/slices/uiSlice.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/store/slices/uiSlice.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/types/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/index.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -88,7 +89,7 @@
       <updated>1763463295036</updated>
       <workItem from="1763463296304" duration="5081000" />
       <workItem from="1763469324626" duration="1670000" />
-      <workItem from="1763471017599" duration="50602000" />
+      <workItem from="1763471017599" duration="59801000" />
     </task>
     <task id="LOCAL-00001" summary="config">
       <option name="closed" value="true" />
@@ -146,7 +147,15 @@
       <option name="project" value="LOCAL" />
       <updated>1763568391944</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="works">
+      <option name="closed" value="true" />
+      <created>1763932314222</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1763932314222</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">

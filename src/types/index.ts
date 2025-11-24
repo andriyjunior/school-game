@@ -18,6 +18,9 @@ export type GameType =
   | 'match'
   | 'sound'
   | 'algorithm-game'
+  | 'pattern-game'
+  | 'binary-game'
+  | 'bug-hunter'
   // Class 3 games
   | 'algorithm-adventure'
   // Class 4 games
@@ -29,6 +32,9 @@ export type GameType =
   | 'pixel'
   | 'debug'
   | 'sort'
+  | 'sorting-game'
+  | 'loop-game'
+  | 'condition-game'
   // Custom tests
   | 'custom-test';
 
@@ -185,6 +191,7 @@ export interface UIState {
   showNameModal: boolean;
   showHelp: boolean;
   helpGameType: GameType | '';
+  toastMessage: string | null;
 }
 
 // ==================== DEBUG GAME TYPES ====================

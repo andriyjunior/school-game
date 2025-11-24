@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
 import { useAppDispatch, useAppSelector } from './store/hooks';
+import { useTwemoji } from './hooks/useTwemoji';
+import useTheme from './hooks/useTheme';
 import {
   setPlayerInfo,
   clearPlayer,
@@ -17,19 +19,30 @@ import {
   setShowNameModal,
   openHelp,
   closeHelp,
+  hideToast,
 } from './store/slices/uiSlice';
 import { fetchTestById } from './store/slices/testSlice';
-import { GameType, PlayerClass, CategoryType, GameDetails } from './types';
+import { GameType, PlayerClass, GameDetails } from './types';
 
-// Import components (keeping .jsx imports for now - hybrid approach)
-import PlayerNameModal from './components/PlayerNameModal.jsx';
+// Import components
+import WelcomePage from './components/WelcomePage';
 import HelpModal from './components/HelpModal.jsx';
 import MainMenu from './components/MainMenu.jsx';
-import StatsBar from './components/StatsBar.jsx';
+import FloatingUserPanel from './components/FloatingUserPanel';
+import MotivationalToast from './components/MotivationalToast';
+import ThemeSwitcher from './components/ThemeSwitcher';
+import Clock from './components/Clock';
 
 // Import game components
 import TakeTest from './components/games/TakeTest.jsx';
 import AlgorithmGame from './components/games/class2/AlgorithmGame.tsx';
+import PatternGame from './components/games/class2/PatternGame.tsx';
+import BinaryGame from './components/games/class2/BinaryGame.tsx';
+import BugHunterGame from './components/games/class2/BugHunterGame.tsx';
+// Class 4 games
+import SortingGame from './components/games/class4/SortingGame.tsx';
+import LoopGame from './components/games/class4/LoopGame.tsx';
+import ConditionGame from './components/games/class4/ConditionGame.tsx';
 
 function App() {
   const dispatch = useAppDispatch();
@@ -39,6 +52,12 @@ function App() {
   const game = useAppSelector((state) => state.game);
   const liveSession = useAppSelector((state) => state.liveSession);
   const ui = useAppSelector((state) => state.ui);
+
+  // Parse emojis with Twemoji for Windows 7 fallback (auto-watches DOM changes)
+  useTwemoji();
+
+  // Initialize theme system
+  useTheme();
 
   // Show name modal if player is not logged in (only on initial load)
   useEffect(() => {
@@ -110,8 +129,8 @@ function App() {
 
 
   // Handle player setup
-  const handlePlayerSetup = (name: string, classNumber: PlayerClass) => {
-    dispatch(setPlayerInfo({ name, class: classNumber }));
+  const handlePlayerSetup = (name: string, classNumber: number) => {
+    dispatch(setPlayerInfo({ name, class: classNumber as PlayerClass }));
     dispatch(setShowNameModal(false));
   };
 
@@ -176,6 +195,60 @@ function App() {
           />
         );
 
+      case 'pattern-game':
+        return (
+          <PatternGame
+            onBack={handleBackToMenu}
+            onShowHelp={handleShowHelp}
+            updateScore={handleUpdateScore}
+          />
+        );
+
+      case 'binary-game':
+        return (
+          <BinaryGame
+            onBack={handleBackToMenu}
+            onShowHelp={handleShowHelp}
+            updateScore={handleUpdateScore}
+          />
+        );
+
+      case 'bug-hunter':
+        return (
+          <BugHunterGame
+            onBack={handleBackToMenu}
+            onShowHelp={handleShowHelp}
+            updateScore={handleUpdateScore}
+          />
+        );
+
+      case 'sorting-game':
+        return (
+          <SortingGame
+            onBack={handleBackToMenu}
+            onShowHelp={handleShowHelp}
+            updateScore={handleUpdateScore}
+          />
+        );
+
+      case 'loop-game':
+        return (
+          <LoopGame
+            onBack={handleBackToMenu}
+            onShowHelp={handleShowHelp}
+            updateScore={handleUpdateScore}
+          />
+        );
+
+      case 'condition-game':
+        return (
+          <ConditionGame
+            onBack={handleBackToMenu}
+            onShowHelp={handleShowHelp}
+            updateScore={handleUpdateScore}
+          />
+        );
+
       case 'custom-test':
         return (
           <TakeTest
@@ -212,48 +285,55 @@ function App() {
     }
   };
 
+  // Show welcome page if user is not logged in
+  if (ui.showNameModal || !player.name || !player.class) {
+    return (
+      <div className="container">
+        <WelcomePage onSubmit={handlePlayerSetup} />
+      </div>
+    );
+  }
+
   return (
     <>
-      {/* Player Name Modal */}
-      {ui.showNameModal && <PlayerNameModal onSubmit={handlePlayerSetup} />}
-
       {/* Help Modal */}
       {ui.showHelp && (
         <HelpModal gameType={ui.helpGameType} onClose={() => dispatch(closeHelp())} />
       )}
 
+      {/* Motivational Toast */}
+      <MotivationalToast
+        message={ui.toastMessage}
+        onClose={() => dispatch(hideToast())}
+      />
+
+      {/* Floating User Panel */}
+      <FloatingUserPanel
+        playerName={player.name}
+        playerClass={player.class}
+        totalScore={game.totalScore}
+        streak={game.streak}
+        onLogout={() => {
+          dispatch(clearPlayer());
+          dispatch(setShowNameModal(true));
+        }}
+      />
+
+      {/* Theme Switcher */}
+      <div style={{
+        position: 'fixed',
+        bottom: '15px',
+        left: '15px',
+        zIndex: 1000
+      }}>
+        <ThemeSwitcher />
+      </div>
+
+      {/* Clock */}
+      <Clock />
+
       {/* Main Container */}
       <div className="container">
-        {/* Player Welcome */}
-        {player.name && !ui.showNameModal && (
-          <div className="player-welcome" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <span>
-              <i className="fas fa-user"></i> {player.name} • {player.class} клас
-            </span>
-            <button
-              onClick={() => {
-                if (confirm('Вийти з акаунту? Ваші результати збережені.')) {
-                  dispatch(clearPlayer());
-                  dispatch(setShowNameModal(true));
-                }
-              }}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: '#999',
-                cursor: 'pointer',
-                fontSize: '12px',
-                padding: '4px 8px',
-              }}
-            >
-              <i className="fas fa-sign-out-alt"></i> Вийти
-            </button>
-          </div>
-        )}
-
-        {/* Stats Bar */}
-        {game.currentGame && <StatsBar totalScore={game.totalScore} streak={game.streak} />}
-
         {/* Achievements Display */}
         <div className="achievements" id="achievements-display"></div>
 

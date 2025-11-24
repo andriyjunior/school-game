@@ -6,6 +6,7 @@ import {
   doc,
   getDocs,
   getDoc,
+  setDoc,
   query,
   where,
   orderBy,
@@ -27,7 +28,6 @@ import {
   LiveSession,
   LiveSessionAnswer,
   GameType,
-  CategoryType,
 } from '../types';
 
 // ==================== SESSION MANAGEMENT ====================
@@ -513,4 +513,74 @@ export const deleteLiveSession = async (sessionId: string): Promise<void> => {
     console.error('Error deleting live session:', error);
     throw error;
   }
+};
+
+// ==================== SETTINGS MANAGEMENT ====================
+
+export interface AppSettings {
+  aiMessagesEnabled: boolean;
+  updatedAt?: any;
+}
+
+const DEFAULT_SETTINGS: AppSettings = {
+  aiMessagesEnabled: false,
+};
+
+/**
+ * Get application settings
+ */
+export const getSettings = async (): Promise<AppSettings> => {
+  try {
+    const settingsRef = doc(db, 'settings', 'app');
+    const settingsDoc = await getDoc(settingsRef);
+
+    if (settingsDoc.exists()) {
+      return settingsDoc.data() as AppSettings;
+    }
+
+    // Return default settings if not exists
+    return DEFAULT_SETTINGS;
+  } catch (error) {
+    console.error('Error getting settings:', error);
+    return DEFAULT_SETTINGS;
+  }
+};
+
+/**
+ * Update application settings
+ */
+export const updateSettings = async (settings: Partial<AppSettings>): Promise<void> => {
+  try {
+    const settingsRef = doc(db, 'settings', 'app');
+    await setDoc(settingsRef, {
+      ...settings,
+      updatedAt: serverTimestamp(),
+    }, { merge: true });
+  } catch (error) {
+    console.error('Error updating settings:', error);
+    throw error;
+  }
+};
+
+/**
+ * Subscribe to settings changes (real-time)
+ */
+export const subscribeSettings = (
+  callback: (settings: AppSettings) => void
+): Unsubscribe => {
+  const settingsRef = doc(db, 'settings', 'app');
+  return onSnapshot(
+    settingsRef,
+    (doc) => {
+      if (doc.exists()) {
+        callback(doc.data() as AppSettings);
+      } else {
+        callback(DEFAULT_SETTINGS);
+      }
+    },
+    (error) => {
+      console.error('Error in settings subscription:', error);
+      callback(DEFAULT_SETTINGS);
+    }
+  );
 };
