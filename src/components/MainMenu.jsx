@@ -16,17 +16,24 @@ export default function MainMenu({ playerClass, onStartGame }) {
           { id: 'algorithm-game', name: '🎯 Алгоритм Пригод', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', desc: 'Вчимося складати алгоритми крок за кроком' },
           { id: 'pattern-game', name: '🔮 Візерунки', gradient: 'linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)', desc: 'Знаходимо закономірності та продовжуємо ряди' },
           { id: 'binary-game', name: '💡 Лампочки', gradient: 'linear-gradient(135deg, #ffd89b 0%, #19547b 100%)', desc: 'Вивчаємо двійковий код через лампочки' },
-          { id: 'bug-hunter', name: '🐛 Шукач Багів', gradient: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)', desc: 'Шукаємо помилки в послідовностях' }
+          { id: 'bug-hunter', name: '🐛 Шукач Багів', gradient: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)', desc: 'Шукаємо помилки в послідовностях' },
+          { id: 'life-skills', name: '🏠 Життєві Навички', gradient: 'linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%)', desc: 'Вчимося робити щоденні справи у правильному порядку' }
         ],
         title: '2 клас',
         description: 'Основи інформатики: алгоритми, візерунки, двійковий код',
         emoji: '🖥️'
       };
     }
-    // Class 3 - intermediate games (coming soon)
+    // Class 3 - intermediate games
     if (classNumber === 3) {
       return {
-        games: [],
+        games: [
+          { id: 'sequence-game', name: '🔢 Послідовності', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', desc: 'Знаходимо закономірності в числах і буквах' },
+          { id: 'maze-game', name: '🤖 Лабіринт', gradient: 'linear-gradient(135deg, #11998e 0%, #38ef7d 100%)', desc: 'Допомагаємо роботу знайти шлях' },
+          { id: 'variable-game', name: '📦 Змінні', gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', desc: 'Вчимося зберігати дані у коробках' },
+          { id: 'comparison-game', name: '⚖️ Порівняння', gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', desc: 'Порівнюємо числа та вирази' },
+          { id: 'memory-code-game', name: '🧠 Код-Пам\'ять', gradient: 'linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)', desc: 'Запам\'ятовуємо та відтворюємо код' }
+        ],
         title: '3 клас',
         description: 'Логічні завдання та основи програмування',
         emoji: '🧩'
@@ -45,7 +52,20 @@ export default function MainMenu({ playerClass, onStartGame }) {
         emoji: '💻'
       };
     }
-    // All other classes (5-11) only have tests - no games
+    // Class 5 - algorithms and flowcharts
+    if (classNumber === 5) {
+      return {
+        games: [
+          { id: 'linear-algorithm', name: '➡️ Лінійні Алгоритми', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', desc: 'Створюємо алгоритми з послідовних кроків' },
+          { id: 'algorithm-types', name: '🔀 Типи Алгоритмів', gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)', desc: 'Вчимося розрізняти лінійні, розгалужені та циклічні алгоритми' },
+          { id: 'flowchart-builder', name: '📊 Блок-Схеми', gradient: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)', desc: 'Будуємо графічні зображення алгоритмів' }
+        ],
+        title: '5 клас',
+        description: 'Типи алгоритмів та блок-схеми',
+        emoji: '📐'
+      };
+    }
+    // All other classes (6-11) only have tests - no games
     return null;
   };
 

@@ -1,23 +1,18 @@
 import { useState, useEffect } from 'react';
-import { GameType, GameDetails } from '../../../types';
 import {
-  GameHeader,
-  ScoreDisplay,
-  CelebrationOverlay,
-  ActionButton
-} from '../../game-ui';
-import { useAIMessages } from '../../../hooks/useAIMessages';
+  GameProps,
+  GameLayout,
+  QuestionDisplay,
+  DragDropSequence,
+  ActionButton,
+  useGameState,
+  useChallengeManager
+} from '../../../engine';
 
 interface Task {
   question: string;
   steps: string[];
   correct: number[];
-}
-
-interface AlgorithmGameProps {
-  onBack: () => void;
-  onShowHelp: (gameType: GameType) => void;
-  updateScore: (points: number, gameDetails?: GameDetails) => Promise<void>;
 }
 
 const TASK_LIBRARY: Record<string, Task[]> = {
@@ -187,96 +182,95 @@ const TASK_LIBRARY: Record<string, Task[]> = {
 
 const ALL_TASKS = Object.values(TASK_LIBRARY).flat();
 
-export default function AlgorithmGame({ onBack, onShowHelp, updateScore }: AlgorithmGameProps) {
-  const [currentTask, setCurrentTask] = useState<Task | null>(null);
-  const [userOrder, setUserOrder] = useState<string[]>([]);
-  const [selectedSteps, setSelectedSteps] = useState<number[]>([]);
-  const [availableSteps, setAvailableSteps] = useState<string[]>([]);
-  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
-  const [showFeedback, setShowFeedback] = useState<boolean>(false);
-  const [score, setScore] = useState<number>(0);
-  const [streak, setStreak] = useState<number>(0);
-  const [tasksCompleted, setTasksCompleted] = useState<number>(0);
-  const [stars, setStars] = useState<number>(0);
-  const [showCelebration, setShowCelebration] = useState<boolean>(false);
+export default function AlgorithmGame({ onBack, onShowHelp, updateScore }: GameProps) {
+  const {
+    currentChallenge: currentTask,
+    loadNextChallenge
+  } = useChallengeManager<Task>({
+    challenges: ALL_TASKS,
+    avoidRepeatLast: 5
+  });
 
-  const { triggerMotivationalToast } = useAIMessages();
+  const {
+    showFeedback,
+    isCorrect,
+    score,
+    streak,
+    tasksCompleted,
+    showCelebration,
+    handleCorrectAnswer,
+    handleIncorrectAnswer,
+    resetForNewTask
+  } = useGameState(updateScore, {
+    basePoints: 100,
+    streakMultiplier: 10,
+    gameType: 'algorithm-game'
+  });
+
+  const [userOrder, setUserOrder] = useState<string[]>([]);
+  const [availableSteps, setAvailableSteps] = useState<string[]>([]);
+  const [stars, setStars] = useState<number>(0);
 
   useEffect(() => {
     loadNewTask();
   }, []);
 
   const loadNewTask = () => {
-    const randomTask = ALL_TASKS[Math.floor(Math.random() * ALL_TASKS.length)];
-    const shuffled = [...randomTask.steps].sort(() => Math.random() - 0.5);
+    const task = loadNextChallenge();
+    if (!task) return;
 
-    setCurrentTask(randomTask);
+    const shuffled = [...task.steps].sort(() => Math.random() - 0.5);
+
     setAvailableSteps(shuffled);
     setUserOrder([]);
-    setSelectedSteps([]);
-    setIsCorrect(null);
-    setShowFeedback(false);
+    resetForNewTask();
   };
 
-  const handleStepClick = (step: string, index: number) => {
+  const handleItemMove = (fromIndex: number, toIndex: number, fromZone: 'available' | 'ordered') => {
     if (!currentTask) return;
 
-    const newUserOrder = [...userOrder, step];
-    const newSelectedSteps = [...selectedSteps, index];
-    const newAvailable = availableSteps.filter((_, i) => i !== index);
+    if (fromZone === 'available') {
+      // Moving from available to ordered
+      const item = availableSteps[fromIndex];
+      const newAvailable = availableSteps.filter((_, i) => i !== fromIndex);
+      const newOrdered = [...userOrder];
+      newOrdered.splice(toIndex, 0, item);
 
-    setUserOrder(newUserOrder);
-    setSelectedSteps(newSelectedSteps);
-    setAvailableSteps(newAvailable);
+      setAvailableSteps(newAvailable);
+      setUserOrder(newOrdered);
 
-    if (newUserOrder.length === currentTask.steps.length) {
-      checkAnswer(newUserOrder);
+      // Check answer if all steps are placed
+      if (newOrdered.length === currentTask.steps.length) {
+        checkAnswer(newOrdered);
+      }
+    } else {
+      // Reordering within ordered zone
+      const newOrdered = [...userOrder];
+      const [movedItem] = newOrdered.splice(fromIndex, 1);
+      newOrdered.splice(toIndex, 0, movedItem);
+      setUserOrder(newOrdered);
     }
   };
 
-  const handleRemoveStep = (index: number) => {
+  const handleItemRemove = (index: number) => {
     const removedStep = userOrder[index];
     const newUserOrder = userOrder.filter((_, i) => i !== index);
-    const newSelectedSteps = selectedSteps.filter((_, i) => i !== index);
     const newAvailable = [...availableSteps, removedStep];
 
     setUserOrder(newUserOrder);
-    setSelectedSteps(newSelectedSteps);
     setAvailableSteps(newAvailable);
   };
 
-  const checkAnswer = (answer: string[]) => {
+  const checkAnswer = async (answer: string[]) => {
     if (!currentTask) return;
 
     const isAnswerCorrect = JSON.stringify(answer) === JSON.stringify(currentTask.steps);
 
-    setIsCorrect(isAnswerCorrect);
-    setShowFeedback(true);
-
     if (isAnswerCorrect) {
-      const basePoints = 100;
-      const streakBonus = streak * 10;
-      const totalPoints = basePoints + streakBonus;
-
-      setScore(prev => prev + totalPoints);
-      setStreak(prev => prev + 1);
-      setTasksCompleted(prev => prev + 1);
       setStars(prev => prev + 1);
-
-      updateScore(totalPoints, {
-        gameType: 'algorithm-game',
-        points: totalPoints,
-        correct: true
-      });
-
-      triggerMotivationalToast();
-
-      if ((tasksCompleted + 1) % 5 === 0) {
-        setShowCelebration(true);
-        setTimeout(() => setShowCelebration(false), 2000);
-      }
+      await handleCorrectAnswer();
     } else {
-      setStreak(0);
+      handleIncorrectAnswer();
     }
   };
 
@@ -285,148 +279,35 @@ export default function AlgorithmGame({ onBack, onShowHelp, updateScore }: Algor
   }
 
   return (
-    <div className="algorithm-game">
-      <GameHeader onBack={onBack} onShowHelp={onShowHelp} gameType="algorithm-game" />
-
-      <ScoreDisplay
-        score={score}
-        streak={streak}
-        tasksCompleted={tasksCompleted}
-        gradient="linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)"
-        extraStats={[{ label: 'Зірки', value: `⭐ ${stars}` }]}
-        floating
+    <GameLayout
+      gameType="algorithm-game"
+      onBack={onBack}
+      onShowHelp={onShowHelp}
+      score={score}
+      streak={streak}
+      tasksCompleted={tasksCompleted}
+      showCelebration={showCelebration}
+      gradient="linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%)"
+      extraStats={[{ label: 'Зірки', value: `⭐ ${stars}` }]}
+    >
+      <QuestionDisplay
+        question={currentTask.question}
+        subtitle={`Крок ${userOrder.length} з ${currentTask.steps.length}`}
       />
 
-      <CelebrationOverlay show={showCelebration} />
-
-      {/* Question */}
-      <h2 style={{
-        textAlign: 'center',
-        color: '#667eea',
-        fontSize: '1.8em',
-        marginBottom: '20px'
-      }}>
-        {currentTask.question}
-      </h2>
-
-      {/* Progress indicator */}
-      <div style={{
-        textAlign: 'center',
-        fontSize: '1.2em',
-        color: '#666',
-        marginBottom: '20px'
-      }}>
-        Крок {userOrder.length} з {currentTask.steps.length}
-      </div>
-
-      {/* User's selected order */}
-      <div style={{
-        background: '#f8f9fa',
-        borderRadius: '15px',
-        padding: '20px',
-        marginBottom: '20px',
-        minHeight: '120px',
-        width: '100%'
-      }}>
-        <h3 style={{ color: '#667eea', marginBottom: '15px', fontSize: '1.2em' }}>
-          📋 Твоя послідовність:
-        </h3>
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '10px'
-        }}>
-          {userOrder.length === 0 ? (
-            <div style={{
-              textAlign: 'center',
-              color: '#999',
-              fontSize: '1.1em',
-              padding: '20px'
-            }}>
-              Вибери кроки внизу ⬇️
-            </div>
-          ) : (
-            userOrder.map((step, index) => (
-              <div
-                key={index}
-                onClick={() => !showFeedback && handleRemoveStep(index)}
-                style={{
-                  background: showFeedback
-                    ? (isCorrect ? '#28a745' : '#dc3545')
-                    : 'white',
-                  color: showFeedback ? 'white' : '#333',
-                  padding: '15px 20px',
-                  borderRadius: '12px',
-                  fontSize: '1.2em',
-                  fontWeight: 'bold',
-                  cursor: showFeedback ? 'default' : 'pointer',
-                  border: '3px solid ' + (showFeedback
-                    ? (isCorrect ? '#28a745' : '#dc3545')
-                    : '#667eea'),
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '15px',
-                  transition: 'all 0.3s'
-                }}
-              >
-                <div style={{
-                  width: '35px',
-                  height: '35px',
-                  background: '#667eea',
-                  color: 'white',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontSize: '1.1em',
-                  flexShrink: 0
-                }}>
-                  {index + 1}
-                </div>
-                <div style={{ flex: 1 }}>{step}</div>
-                {!showFeedback && (
-                  <div style={{ fontSize: '1.3em', color: '#dc3545' }}>✖️</div>
-                )}
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-
-      {/* Available steps */}
-      {!showFeedback && availableSteps.length > 0 && (
-        <div>
-          <h3 style={{ color: '#667eea', marginBottom: '15px', fontSize: '1.2em' }}>
-            🎯 Вибери наступний крок:
-          </h3>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: '12px'
-          }}>
-            {availableSteps.map((step, index) => (
-              <button
-                key={index}
-                onClick={() => handleStepClick(step, index)}
-                style={{
-                  background: 'linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)',
-                  color: 'white',
-                  border: 'none',
-                  padding: '20px',
-                  fontSize: '1.2em',
-                  borderRadius: '12px',
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                  transition: 'all 0.3s',
-                  boxShadow: '0 3px 10px rgba(0,0,0,0.15)'
-                }}
-              >
-                {step}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+      <DragDropSequence
+        availableItems={availableSteps}
+        orderedItems={userOrder}
+        onItemMove={handleItemMove}
+        onItemRemove={handleItemRemove}
+        disabled={showFeedback}
+        maxItems={currentTask.steps.length}
+        gradient="linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)"
+        showFeedback={showFeedback}
+        isCorrect={isCorrect}
+        emptyMessage="Перетягни кроки сюди ⬆️"
+        promptMessage="🎯 Доступні кроки (перетягни їх вверх):"
+      />
 
       {/* Feedback */}
       {showFeedback && (
@@ -532,6 +413,6 @@ export default function AlgorithmGame({ onBack, onShowHelp, updateScore }: Algor
           </ActionButton>
         </div>
       )}
-    </div>
+    </GameLayout>
   );
 }

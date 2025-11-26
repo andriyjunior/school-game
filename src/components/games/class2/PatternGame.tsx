@@ -1,25 +1,17 @@
-import { useState, useEffect } from 'react';
-import { GameType, GameDetails } from '../../../types';
+import { useEffect } from 'react';
 import {
-  GameHeader,
-  ScoreDisplay,
-  CelebrationOverlay,
+  GameProps,
+  OptionChallenge,
+  GameLayout,
+  OptionGrid,
+  QuestionDisplay,
   FeedbackSection,
-  useGameState
-} from '../../game-ui';
+  useGameState,
+  useChallengeManager
+} from '../../../engine';
 
-interface PatternGameProps {
-  onBack: () => void;
-  onShowHelp: (gameType: GameType) => void;
-  updateScore: (points: number, gameDetails?: GameDetails) => Promise<void>;
-}
-
-interface Pattern {
-  question: string;
+interface Pattern extends OptionChallenge {
   sequence: string[];
-  options: string[];
-  correctAnswer: number;
-  explanation: string;
 }
 
 const PATTERN_LIBRARY: Record<string, Pattern[]> = {
@@ -177,9 +169,14 @@ const PATTERN_LIBRARY: Record<string, Pattern[]> = {
 
 const ALL_PATTERNS = Object.values(PATTERN_LIBRARY).flat();
 
-export default function PatternGame({ onBack, onShowHelp, updateScore }: PatternGameProps) {
-  const [currentPattern, setCurrentPattern] = useState<Pattern | null>(null);
-  const [stars, setStars] = useState(0);
+export default function PatternGame({ onBack, onShowHelp, updateScore }: GameProps) {
+  const {
+    currentChallenge: currentPattern,
+    loadNextChallenge
+  } = useChallengeManager<Pattern>({
+    challenges: ALL_PATTERNS,
+    avoidRepeatLast: 5
+  });
 
   const {
     showFeedback,
@@ -198,22 +195,20 @@ export default function PatternGame({ onBack, onShowHelp, updateScore }: Pattern
   });
 
   useEffect(() => {
-    loadNewPattern();
-  }, []);
+    loadNextChallenge();
+  }, [loadNextChallenge]);
 
-  const loadNewPattern = () => {
-    const randomPattern = ALL_PATTERNS[Math.floor(Math.random() * ALL_PATTERNS.length)];
-    setCurrentPattern(randomPattern);
+  const handleNext = () => {
+    loadNextChallenge();
     resetForNewTask();
   };
 
-  const handleAnswer = async (answerIndex: number) => {
+  const handleAnswer = async (_option: string, answerIndex: number) => {
     if (showFeedback || !currentPattern) return;
 
     const correct = answerIndex === currentPattern.correctAnswer;
 
     if (correct) {
-      setStars(prev => prev + 1);
       await handleCorrectAnswer();
     } else {
       handleIncorrectAnswer();
@@ -225,72 +220,60 @@ export default function PatternGame({ onBack, onShowHelp, updateScore }: Pattern
   }
 
   return (
-    <div className="pattern-game">
-      <GameHeader onBack={onBack} onShowHelp={onShowHelp} gameType="pattern-game" />
-
-      <ScoreDisplay
-        score={score}
-        streak={streak}
-        tasksCompleted={tasksCompleted}
-        gradient="linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)"
-        extraStats={[{ label: 'Зірки', value: `⭐ ${stars}` }]}
-        floating
-      />
-
-      <CelebrationOverlay show={showCelebration} />
-
-      {/* Question */}
-      <h2 style={{
-        textAlign: 'center',
-        color: '#667eea',
-        fontSize: '1.8em',
-        marginBottom: '25px'
-      }}>
-        {currentPattern.question}
-      </h2>
-
-      {/* Pattern Sequence */}
-      <div style={{
-        background: '#f8f9fa',
-        borderRadius: '15px',
-        padding: '20px',
-        marginBottom: '20px',
-        textAlign: 'center',
-        width: '100%'
-      }}>
+    <GameLayout
+      gameType="pattern-game"
+      onBack={onBack}
+      onShowHelp={onShowHelp}
+      score={score}
+      streak={streak}
+      tasksCompleted={tasksCompleted}
+      showCelebration={showCelebration}
+      gradient="linear-gradient(135deg, #a8edea 0%, #fed6e3 100%)"
+    >
+      <QuestionDisplay question={currentPattern.question}>
+        {/* Pattern Sequence */}
         <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '15px',
-          fontSize: '3em'
+          background: '#f8f9fa',
+          borderRadius: '15px',
+          padding: '20px',
+          marginBottom: '20px',
+          textAlign: 'center',
+          width: '100%'
         }}>
-          {currentPattern.sequence.map((item, index) => (
-            <div
-              key={index}
-              style={{
-                padding: '10px 15px',
-                borderRadius: '10px',
-                background: item === '?'
-                  ? (showFeedback
-                    ? (isCorrect ? '#28a745' : '#dc3545')
-                    : '#667eea')
-                  : 'white',
-                boxShadow: '0 3px 10px rgba(0,0,0,0.1)',
-                minWidth: '60px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
-            >
-              {item === '?' && showFeedback
-                ? currentPattern.options[currentPattern.correctAnswer]
-                : item}
-            </div>
-          ))}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: '15px',
+            fontSize: '3em'
+          }}>
+            {currentPattern.sequence.map((item, index) => (
+              <div
+                key={index}
+                style={{
+                  padding: '10px 15px',
+                  borderRadius: '10px',
+                  background: item === '?'
+                    ? (showFeedback
+                      ? (isCorrect ? '#28a745' : '#dc3545')
+                      : '#667eea')
+                    : 'white',
+                  boxShadow: '0 3px 10px rgba(0,0,0,0.1)',
+                  minWidth: '60px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                {item === '?' && showFeedback
+                  ? currentPattern.options[currentPattern.correctAnswer]
+                  : item}
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
+      </QuestionDisplay>
 
       {/* Answer Options */}
       {!showFeedback && (
@@ -303,35 +286,11 @@ export default function PatternGame({ onBack, onShowHelp, updateScore }: Pattern
           }}>
             🎯 Вибери правильну відповідь:
           </h3>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
-            gap: '12px',
-            maxWidth: '400px',
-            margin: '0 auto',
-            width: '100%'
-          }}>
-            {currentPattern.options.map((option, index) => (
-              <button
-                key={index}
-                onClick={() => handleAnswer(index)}
-                style={{
-                  background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                  color: 'white',
-                  border: 'none',
-                  padding: '20px',
-                  fontSize: '2em',
-                  borderRadius: '15px',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s',
-                  boxShadow: '0 5px 15px rgba(0,0,0,0.2)',
-                  minHeight: '80px'
-                }}
-              >
-                {option}
-              </button>
-            ))}
-          </div>
+          <OptionGrid
+            options={currentPattern.options}
+            onSelect={handleAnswer}
+            gradient="linear-gradient(135deg, #667eea 0%, #764ba2 100%)"
+          />
         </div>
       )}
 
@@ -342,10 +301,10 @@ export default function PatternGame({ onBack, onShowHelp, updateScore }: Pattern
           points={100 + (streak - 1) * 10}
           streak={streak}
           explanation={currentPattern.explanation}
-          onNext={loadNewPattern}
+          onNext={handleNext}
           nextButtonText="➡️ Наступний візерунок"
         />
       )}
-    </div>
+    </GameLayout>
   );
 }

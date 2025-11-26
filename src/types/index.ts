@@ -1,6 +1,6 @@
 // ==================== PLAYER TYPES ====================
 
-export type PlayerClass = 2 | 3 | 4;
+export type PlayerClass = 2 | 3 | 4 | 5;
 
 export interface PlayerState {
   name: string;
@@ -21,8 +21,13 @@ export type GameType =
   | 'pattern-game'
   | 'binary-game'
   | 'bug-hunter'
+  | 'life-skills'
   // Class 3 games
-  | 'algorithm-adventure'
+  | 'sequence-game'
+  | 'maze-game'
+  | 'variable-game'
+  | 'comparison-game'
+  | 'memory-code-game'
   // Class 4 games
   | 'binary'
   | 'parts'
@@ -35,6 +40,10 @@ export type GameType =
   | 'sorting-game'
   | 'loop-game'
   | 'condition-game'
+  // Class 5 games
+  | 'linear-algorithm'
+  | 'algorithm-types'
+  | 'flowchart-builder'
   // Custom tests
   | 'custom-test';
 

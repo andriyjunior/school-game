@@ -1,25 +1,18 @@
 import { useState, useEffect } from 'react';
-import { GameType, GameDetails } from '../../../types';
 import {
-  GameHeader,
-  ScoreDisplay,
-  CelebrationOverlay,
-  FeedbackSection
-} from '../../game-ui';
-import { useAIMessages } from '../../../hooks/useAIMessages';
+  GameProps,
+  Challenge,
+  GameLayout,
+  QuestionDisplay,
+  FeedbackSection,
+  useGameState,
+  useChallengeManager
+} from '../../../engine';
 
-interface BugHunterGameProps {
-  onBack: () => void;
-  onShowHelp: (gameType: GameType) => void;
-  updateScore: (points: number, gameDetails?: GameDetails) => Promise<void>;
-}
-
-interface BugChallenge {
-  question: string;
+interface BugChallenge extends Challenge {
   sequence: string[];
   bugIndex: number;
   correctItem: string;
-  explanation: string;
   category: string;
 }
 
@@ -138,61 +131,53 @@ const BUG_LIBRARY: BugChallenge[] = [
   }
 ];
 
-export default function BugHunterGame({ onBack, onShowHelp, updateScore }: BugHunterGameProps) {
-  const [currentChallenge, setCurrentChallenge] = useState<BugChallenge | null>(null);
+export default function BugHunterGame({ onBack, onShowHelp, updateScore }: GameProps) {
+  const {
+    currentChallenge,
+    loadNextChallenge
+  } = useChallengeManager<BugChallenge>({
+    challenges: BUG_LIBRARY,
+    avoidRepeatLast: 5
+  });
+
+  const {
+    showFeedback,
+    isCorrect,
+    score,
+    streak,
+    tasksCompleted,
+    showCelebration,
+    handleCorrectAnswer,
+    handleIncorrectAnswer,
+    resetForNewTask
+  } = useGameState(updateScore, {
+    basePoints: 100,
+    streakMultiplier: 10,
+    gameType: 'bug-hunter'
+  });
+
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
-  const [score, setScore] = useState(0);
-  const [streak, setStreak] = useState(0);
-  const [bugsFound, setBugsFound] = useState(0);
-  const [showCelebration, setShowCelebration] = useState(false);
-  const { triggerMotivationalToast } = useAIMessages();
 
   useEffect(() => {
-    loadNewChallenge();
-  }, []);
+    loadNextChallenge();
+  }, [loadNextChallenge]);
 
-  const loadNewChallenge = () => {
-    const randomChallenge = BUG_LIBRARY[Math.floor(Math.random() * BUG_LIBRARY.length)];
-    setCurrentChallenge(randomChallenge);
+  const handleNext = () => {
+    loadNextChallenge();
     setSelectedIndex(null);
-    setShowFeedback(false);
-    setIsCorrect(null);
+    resetForNewTask();
   };
 
-  const handleSelect = (index: number) => {
+  const handleSelect = async (index: number) => {
     if (showFeedback || !currentChallenge) return;
 
     setSelectedIndex(index);
     const correct = index === currentChallenge.bugIndex;
-    setIsCorrect(correct);
-    setShowFeedback(true);
 
     if (correct) {
-      const basePoints = 100;
-      const streakBonus = streak * 10;
-      const totalPoints = basePoints + streakBonus;
-
-      setScore(prev => prev + totalPoints);
-      setStreak(prev => prev + 1);
-      setBugsFound(prev => prev + 1);
-
-      updateScore(totalPoints, {
-        gameType: 'bug-hunter',
-        points: totalPoints,
-        correct: true
-      });
-
-      // Trigger motivational toast occasionally
-      triggerMotivationalToast();
-
-      if ((bugsFound + 1) % 5 === 0) {
-        setShowCelebration(true);
-        setTimeout(() => setShowCelebration(false), 2000);
-      }
+      await handleCorrectAnswer();
     } else {
-      setStreak(0);
+      handleIncorrectAnswer();
     }
   };
 
@@ -201,34 +186,26 @@ export default function BugHunterGame({ onBack, onShowHelp, updateScore }: BugHu
   }
 
   return (
-    <div className="bug-hunter-game">
-      <GameHeader onBack={onBack} onShowHelp={onShowHelp} gameType="bug-hunter" />
-
-      <ScoreDisplay
-        score={score}
-        streak={streak}
-        tasksCompleted={bugsFound}
-        gradient="linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)"
-        extraStats={[{ label: 'Знайдено', value: `🐛 ${bugsFound}` }]}
-        floating
-      />
-
-      <CelebrationOverlay show={showCelebration} emojis="🎉 🐛 🌟" />
-
-      {/* Title */}
+    <GameLayout
+      gameType="bug-hunter"
+      onBack={onBack}
+      onShowHelp={onShowHelp}
+      score={score}
+      streak={streak}
+      tasksCompleted={tasksCompleted}
+      showCelebration={showCelebration}
+      gradient="linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%)"
+      extraStats={[{ label: 'Знайдено', value: `🐛 ${tasksCompleted}` }]}
+      celebrationEmojis="🎉 🐛 🌟"
+    >
       <div style={{ textAlign: 'center', marginBottom: '20px' }}>
         <div style={{ fontSize: '3em', marginBottom: '10px' }}>🔍🐛</div>
-        <h2 style={{
-          color: '#667eea',
-          fontSize: '1.8em',
-          marginBottom: '10px'
-        }}>
-          {currentChallenge.question}
-        </h2>
-        <p style={{ color: '#666', fontSize: '1.1em' }}>
-          Натисни на елемент з помилкою!
-        </p>
       </div>
+
+      <QuestionDisplay
+        question={currentChallenge.question}
+        subtitle="Натисни на елемент з помилкою!"
+      />
 
       {/* Sequence */}
       <div style={{
@@ -322,7 +299,7 @@ export default function BugHunterGame({ onBack, onShowHelp, updateScore }: BugHu
           points={100 + (streak - 1) * 10}
           streak={streak}
           explanation={currentChallenge.explanation}
-          onNext={loadNewChallenge}
+          onNext={handleNext}
           nextButtonText="➡️ Шукати наступний баг"
         >
           <div style={{
@@ -336,6 +313,6 @@ export default function BugHunterGame({ onBack, onShowHelp, updateScore }: BugHu
           </div>
         </FeedbackSection>
       )}
-    </div>
+    </GameLayout>
   );
 }

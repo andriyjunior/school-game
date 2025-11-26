@@ -39,10 +39,21 @@ import AlgorithmGame from './components/games/class2/AlgorithmGame.tsx';
 import PatternGame from './components/games/class2/PatternGame.tsx';
 import BinaryGame from './components/games/class2/BinaryGame.tsx';
 import BugHunterGame from './components/games/class2/BugHunterGame.tsx';
+import LifeSkillsGame from './components/games/class2/LifeSkillsGame.tsx';
+// Class 3 games
+import SequenceGame from './components/games/class3/SequenceGame.tsx';
+import MazeGame from './components/games/class3/MazeGame.tsx';
+import VariableGame from './components/games/class3/VariableGame.tsx';
+import ComparisonGame from './components/games/class3/ComparisonGame.tsx';
+import MemoryCodeGame from './components/games/class3/MemoryCodeGame.tsx';
 // Class 4 games
 import SortingGame from './components/games/class4/SortingGame.tsx';
 import LoopGame from './components/games/class4/LoopGame.tsx';
 import ConditionGame from './components/games/class4/ConditionGame.tsx';
+// Class 5 games
+import LinearAlgorithmGame from './components/games/class5/LinearAlgorithmGame.tsx';
+import AlgorithmTypeGame from './components/games/class5/AlgorithmTypeGame.tsx';
+import FlowchartGame from './components/games/class5/FlowchartGame.tsx';
 
 function App() {
   const dispatch = useAppDispatch();
@@ -222,6 +233,60 @@ function App() {
           />
         );
 
+      case 'life-skills':
+        return (
+          <LifeSkillsGame
+            onBack={handleBackToMenu}
+            onShowHelp={handleShowHelp}
+            updateScore={handleUpdateScore}
+          />
+        );
+
+      case 'sequence-game':
+        return (
+          <SequenceGame
+            onBack={handleBackToMenu}
+            onShowHelp={handleShowHelp}
+            updateScore={handleUpdateScore}
+          />
+        );
+
+      case 'maze-game':
+        return (
+          <MazeGame
+            onBack={handleBackToMenu}
+            onShowHelp={handleShowHelp}
+            updateScore={handleUpdateScore}
+          />
+        );
+
+      case 'variable-game':
+        return (
+          <VariableGame
+            onBack={handleBackToMenu}
+            onShowHelp={handleShowHelp}
+            updateScore={handleUpdateScore}
+          />
+        );
+
+      case 'comparison-game':
+        return (
+          <ComparisonGame
+            onBack={handleBackToMenu}
+            onShowHelp={handleShowHelp}
+            updateScore={handleUpdateScore}
+          />
+        );
+
+      case 'memory-code-game':
+        return (
+          <MemoryCodeGame
+            onBack={handleBackToMenu}
+            onShowHelp={handleShowHelp}
+            updateScore={handleUpdateScore}
+          />
+        );
+
       case 'sorting-game':
         return (
           <SortingGame
@@ -243,6 +308,34 @@ function App() {
       case 'condition-game':
         return (
           <ConditionGame
+            onBack={handleBackToMenu}
+            onShowHelp={handleShowHelp}
+            updateScore={handleUpdateScore}
+          />
+        );
+
+      // Class 5 games
+      case 'linear-algorithm':
+        return (
+          <LinearAlgorithmGame
+            onBack={handleBackToMenu}
+            onShowHelp={handleShowHelp}
+            updateScore={handleUpdateScore}
+          />
+        );
+
+      case 'algorithm-types':
+        return (
+          <AlgorithmTypeGame
+            onBack={handleBackToMenu}
+            onShowHelp={handleShowHelp}
+            updateScore={handleUpdateScore}
+          />
+        );
+
+      case 'flowchart-builder':
+        return (
+          <FlowchartGame
             onBack={handleBackToMenu}
             onShowHelp={handleShowHelp}
             updateScore={handleUpdateScore}

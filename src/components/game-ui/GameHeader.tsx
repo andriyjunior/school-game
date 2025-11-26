@@ -11,9 +11,18 @@ const gameNames: Record<string, string> = {
   'binary-game': 'Двійковий код',
   'pattern-game': 'Візерунки',
   'bug-hunter': 'Мисливець на баги',
+  'life-skills': 'Життєві навички',
+  'sequence-game': 'Послідовності',
+  'maze-game': 'Лабіринт',
+  'variable-game': 'Змінні',
+  'comparison-game': 'Порівняння',
+  'memory-code-game': 'Код-Пам\'ять',
   'loop-game': 'Цикли',
   'condition-game': 'Умови',
-  'sorting-game': 'Сортування'
+  'sorting-game': 'Сортування',
+  'linear-algorithm': 'Лінійні Алгоритми',
+  'algorithm-types': 'Типи Алгоритмів',
+  'flowchart-builder': 'Блок-Схеми'
 };
 
 export default function GameHeader({ onBack, onShowHelp, gameType }: GameHeaderProps) {
